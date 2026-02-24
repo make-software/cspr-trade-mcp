@@ -1,0 +1,445 @@
+# CSPR.trade MCP Server
+
+> CSPR.trade is a decentralized exchange (DEX) on the Casper Network, forked from Uniswap V2. This MCP server provides 13 tools for market data, trading, liquidity management, and account queries.
+
+## Protocol Overview
+
+CSPR.trade is an automated market maker (AMM) DEX built on the Casper blockchain. It uses the constant product formula (x * y = k) from Uniswap V2. Users can swap tokens, provide liquidity to earn fees, and check their positions. The native currency is CSPR (9 decimals). All on-chain interactions go through the CSPR.trade router contract using proxy WASM deploys.
+
+## MCP Server
+
+The `@cspr-trade/mcp` server exposes 13 tools over the Model Context Protocol (MCP) using stdio transport. It wraps the `@cspr-trade/sdk` TypeScript SDK.
+
+### Configuration
+
+Set environment variables before starting:
+- `CSPR_TRADE_NETWORK` — `testnet` or `mainnet` (default: `mainnet`)
+- `CSPR_TRADE_API_URL` — Override API base URL (optional)
+
+### Usage with Claude Desktop
+
+```json
+{
+  "mcpServers": {
+    "cspr-trade": {
+      "command": "node",
+      "args": ["path/to/packages/mcp/dist/index.js"],
+      "env": {
+        "CSPR_TRADE_NETWORK": "testnet"
+      }
+    }
+  }
+}
+```
+
+## Token Identification
+
+Tokens can be identified by:
+- **Symbol** (preferred): `"CSPR"`, `"USDT"`, `"WCSPR"`, `"USDC"`
+- **Name**: `"Casper"`, `"Tether USD"`
+- **Contract package hash**: `"hash-3d80df21ba4ee4d66a2a1f60c32570dd5685e4b279f6538162a5fd1314847c1e"`
+
+The SDK resolves these automatically. Symbols are case-insensitive. CSPR is the native token and has special handling — it uses the Wrapped CSPR (WCSPR) contract for on-chain routing but is presented as CSPR to users.
+
+## Tools Reference
+
+### Market Data Tools
+
+#### get_tokens
+List all tradable tokens on CSPR.trade with optional fiat pricing.
+
+Parameters:
+- `currency` (string, optional): Fiat currency code, e.g. `"USD"`, `"EUR"`. Omit for no fiat prices.
+
+Example:
+```
+get_tokens({ currency: "USD" })
+```
+
+Returns: Array of tokens with id, name, symbol, decimals, packageHash, iconUrl, fiatPrice.
+
+---
+
+#### get_pairs
+List trading pairs on CSPR.trade with reserves and pricing data.
+
+Parameters:
+- `page` (number, optional): Page number (default 1)
+- `page_size` (number, optional): Items per page (default 10, max 250)
+- `order_by` (string, optional): `"timestamp"`, `"reserve0"`, or `"reserve1"`
+- `order_direction` (string, optional): `"asc"` or `"desc"`
+- `currency` (string, optional): Fiat currency code for pricing
+
+Example:
+```
+get_pairs({ page: 1, page_size: 5, currency: "USD" })
+```
+
+Returns: Paginated list of pairs with token info, reserves, and pricing.
+
+---
+
+#### get_pair_details
+Get detailed information about a specific trading pair.
+
+Parameters:
+- `pair` (string, required): Pair contract package hash, e.g. `"hash-abc123..."`
+- `currency` (string, optional): Fiat currency code
+
+Example:
+```
+get_pair_details({ pair: "hash-abc123...", currency: "USD" })
+```
+
+Returns: Detailed pair info with reserves, token metadata, and pricing.
+
+---
+
+#### get_quote
+Get a swap quote for trading between two tokens. Returns amounts, price impact, and routing path.
+
+Parameters:
+- `token_in` (string, required): Input token — symbol, name, or contract hash
+- `token_out` (string, required): Output token — symbol, name, or contract hash
+- `amount` (string, required): Human-readable amount, e.g. `"100"` for 100 CSPR
+- `type` (string, required): `"exact_in"` (specify input amount) or `"exact_out"` (specify desired output)
+
+Example:
+```
+get_quote({ token_in: "CSPR", token_out: "USDT", amount: "1000", type: "exact_in" })
+```
+
+Returns: Quote with amountIn, amountOut, formatted amounts, executionPrice, priceImpact, path, pathSymbols, recommendedSlippageBps.
+
+---
+
+#### get_currencies
+List supported fiat currencies for price display.
+
+Parameters: None
+
+Example:
+```
+get_currencies()
+```
+
+Returns: Array of currencies with id, code, name, symbol.
+
+---
+
+### Trading Tools
+
+#### build_swap
+Build an unsigned swap transaction. Returns the deploy JSON for external signing, plus a human-readable summary.
+
+Parameters:
+- `token_in` (string, required): Input token — symbol, name, or contract hash
+- `token_out` (string, required): Output token — symbol, name, or contract hash
+- `amount` (string, required): Human-readable amount
+- `type` (string, required): `"exact_in"` or `"exact_out"`
+- `slippage_bps` (number, optional): Slippage tolerance in basis points (default 300 = 3%)
+- `deadline_minutes` (number, optional): Transaction deadline in minutes (default 20)
+- `sender_public_key` (string, required): Sender hex public key, e.g. `"01abc..."`
+
+Example:
+```
+build_swap({
+  token_in: "CSPR",
+  token_out: "USDT",
+  amount: "1000",
+  type: "exact_in",
+  sender_public_key: "01abc123..."
+})
+```
+
+Returns: Summary text, unsigned deploy JSON, estimated gas cost, and any warnings (high price impact, high slippage).
+
+---
+
+#### build_approve_token
+Build an unsigned token approval transaction. Required before swapping ERC-20-style tokens.
+
+Parameters:
+- `token` (string, required): Token contract package hash to approve
+- `amount` (string, required): Raw amount to approve
+- `sender_public_key` (string, required): Sender hex public key
+
+Example:
+```
+build_approve_token({
+  token: "hash-abc123...",
+  amount: "1000000000",
+  sender_public_key: "01abc123..."
+})
+```
+
+Returns: Summary text and unsigned deploy JSON.
+
+---
+
+#### submit_transaction
+Submit a signed deploy/transaction to the Casper network via the CSPR.trade API.
+
+Parameters:
+- `signed_deploy_json` (string, required): The signed deploy JSON string
+
+Example:
+```
+submit_transaction({ signed_deploy_json: "{...signed deploy...}" })
+```
+
+Returns: Transaction hash string.
+
+---
+
+### Liquidity Tools
+
+#### build_add_liquidity
+Build an unsigned add-liquidity transaction for a token pair.
+
+Parameters:
+- `token_a` (string, required): First token — symbol, name, or hash
+- `token_b` (string, required): Second token — symbol, name, or hash
+- `amount_a` (string, required): Human-readable amount of first token
+- `amount_b` (string, required): Human-readable amount of second token
+- `slippage_bps` (number, optional): Slippage in basis points (default 300)
+- `deadline_minutes` (number, optional): Deadline in minutes (default 20)
+- `sender_public_key` (string, required): Sender hex public key
+
+Example:
+```
+build_add_liquidity({
+  token_a: "CSPR",
+  token_b: "USDT",
+  amount_a: "5000",
+  amount_b: "100",
+  sender_public_key: "01abc123..."
+})
+```
+
+Returns: Summary text and unsigned deploy JSON.
+
+---
+
+#### build_remove_liquidity
+Build an unsigned remove-liquidity transaction.
+
+Parameters:
+- `pair` (string, required): Pair contract package hash
+- `percentage` (number, required): Percentage of liquidity to remove (1-100)
+- `slippage_bps` (number, optional): Slippage in basis points (default 300)
+- `deadline_minutes` (number, optional): Deadline in minutes (default 20)
+- `sender_public_key` (string, required): Sender hex public key
+
+Example:
+```
+build_remove_liquidity({
+  pair: "hash-abc123...",
+  percentage: 50,
+  sender_public_key: "01abc123..."
+})
+```
+
+Returns: Summary text with LP tokens to burn and unsigned deploy JSON.
+
+---
+
+### Account Tools
+
+#### get_liquidity_positions
+Get liquidity positions for an account.
+
+Parameters:
+- `account_public_key` (string, required): Account public key (hex)
+- `currency` (string, optional): Fiat currency code
+
+Example:
+```
+get_liquidity_positions({
+  account_public_key: "01abc123...",
+  currency: "USD"
+})
+```
+
+Returns: Array of positions with pair info, LP token balance, pool share percentage, and estimated token amounts.
+
+---
+
+#### get_impermanent_loss
+Calculate impermanent loss for a liquidity position.
+
+Parameters:
+- `account_public_key` (string, required): Account public key (hex)
+- `pair` (string, required): Pair contract package hash
+
+Example:
+```
+get_impermanent_loss({
+  account_public_key: "01abc123...",
+  pair: "hash-abc123..."
+})
+```
+
+Returns: Impermanent loss value and timestamp.
+
+---
+
+#### get_swap_history
+Get swap transaction history.
+
+Parameters:
+- `account_hash` (string, optional): Filter by account hash
+- `pair` (string, optional): Filter by pair contract package hash
+- `page` (number, optional): Page number
+- `page_size` (number, optional): Items per page
+
+Example:
+```
+get_swap_history({ account_hash: "account-hash-abc123...", page: 1, page_size: 10 })
+```
+
+Returns: Paginated swap history with transaction hashes, amounts, and timestamps.
+
+---
+
+## Common Workflows
+
+### 1. Check Token Prices and Get a Swap Quote
+
+Step 1: List available tokens with USD pricing.
+```
+get_tokens({ currency: "USD" })
+```
+
+Step 2: Get a quote for swapping 1000 CSPR to USDT.
+```
+get_quote({ token_in: "CSPR", token_out: "USDT", amount: "1000", type: "exact_in" })
+```
+
+Step 3: Review the quote — check amountOutFormatted, priceImpact, and pathSymbols.
+
+### 2. Execute a Swap (Full Flow)
+
+Step 1: Get a quote to show the user what they will receive.
+```
+get_quote({ token_in: "CSPR", token_out: "USDT", amount: "1000", type: "exact_in" })
+```
+
+Step 2: Show the user the quote summary and get confirmation.
+
+Step 3: Build the unsigned swap transaction.
+```
+build_swap({
+  token_in: "CSPR",
+  token_out: "USDT",
+  amount: "1000",
+  type: "exact_in",
+  sender_public_key: "01abc123..."
+})
+```
+
+Step 4: The user signs the deploy JSON externally (e.g., with Casper Signer, Ledger, or a wallet).
+
+Step 5: Submit the signed transaction.
+```
+submit_transaction({ signed_deploy_json: "<signed JSON from step 4>" })
+```
+
+### 3. Add Liquidity to a Pool
+
+Step 1: Check existing pairs and reserves.
+```
+get_pairs({ currency: "USD" })
+```
+
+Step 2: Build the add-liquidity transaction.
+```
+build_add_liquidity({
+  token_a: "CSPR",
+  token_b: "USDT",
+  amount_a: "5000",
+  amount_b: "100",
+  sender_public_key: "01abc123..."
+})
+```
+
+Step 3: User signs externally, then submit.
+```
+submit_transaction({ signed_deploy_json: "<signed JSON>" })
+```
+
+### 4. Check LP Positions and Impermanent Loss
+
+Step 1: Get all liquidity positions.
+```
+get_liquidity_positions({ account_public_key: "01abc123...", currency: "USD" })
+```
+
+Step 2: Check impermanent loss for a specific position.
+```
+get_impermanent_loss({
+  account_public_key: "01abc123...",
+  pair: "hash-abc123..."
+})
+```
+
+## Non-Custodial Signing Flow
+
+This MCP server is **non-custodial**. It never handles private keys. The flow is:
+
+1. **Build** — The server creates an unsigned deploy JSON with all transaction parameters.
+2. **Sign** — The user signs the deploy externally using their own key management (Casper Signer browser extension, Ledger hardware wallet, CLI tools, or any Casper-compatible wallet).
+3. **Submit** — The signed deploy JSON is submitted to the Casper network via `submit_transaction`.
+
+The unsigned deploy JSON follows the standard Casper deploy format and can be signed by any tool that supports Casper deploys. Never ask users for private keys. Never attempt to sign deploys within the MCP server.
+
+## Contract Addresses
+
+### Testnet
+- **Router**: `hash-04a11a367e708c52557930c4e9c1301f4465100d1b1b6d0a62b48d3e32402867`
+- **WCSPR**: `hash-3d80df21ba4ee4d66a2a1f60c32570dd5685e4b279f6538162a5fd1314847c1e`
+- **API URL**: `https://cspr-trade-api.dev.make.services`
+- **Chain name**: `casper-test`
+
+### Mainnet
+- **API URL**: `https://api.cspr.trade`
+- **Chain name**: `casper`
+- Note: Mainnet contract addresses are pending confirmation.
+
+## Gas Costs
+
+All gas costs are in CSPR (the native Casper token):
+- **Token approval**: 5 CSPR
+- **Swap (CSPR <-> token)**: 30 CSPR
+- **Swap (token <-> token)**: 30 CSPR
+- **Add liquidity (existing pool)**: 50 CSPR
+- **Add liquidity (new pool)**: 500 CSPR
+- **Remove liquidity**: 30 CSPR
+
+Gas is paid from the sender's CSPR balance and is separate from the swap amount. Ensure the user has enough CSPR to cover both the trade and gas.
+
+## Default Settings
+
+- **Slippage tolerance**: 300 basis points (3%)
+- **Transaction deadline**: 20 minutes
+- **TTL**: 30 minutes (deploy time-to-live on the Casper network)
+
+Users can override slippage and deadline per transaction.
+
+## Safety Guidelines
+
+1. **Always show a summary before signing**: Display the trade details (amounts, price impact, gas cost) and get user confirmation before proceeding to sign.
+2. **Warn on high price impact**: If price impact exceeds 5%, warn the user. Above 15%, strongly discourage the trade.
+3. **Warn on high slippage**: If slippage tolerance exceeds 10%, warn that the user may receive significantly less than quoted.
+4. **Never expose private keys**: This server is non-custodial. Never ask for, store, or transmit private keys.
+5. **Verify token resolution**: When a user says a token name, confirm the resolved token (symbol, decimals) before building transactions.
+6. **Check sufficient balance**: Remind users they need enough CSPR for gas in addition to trade amounts.
+7. **Explain impermanent loss**: When users add liquidity, explain that impermanent loss is a risk of AMM liquidity provision.
+
+## Casper Network Basics
+
+- **Native token**: CSPR (9 decimals, 1 CSPR = 1,000,000,000 motes)
+- **Account format**: Public keys start with `01` (ed25519) or `02` (secp256k1)
+- **Deploy model**: Transactions are called "deploys" on Casper. They must be signed with the sender's private key.
+- **Block time**: ~65 seconds on mainnet
+- **WCSPR**: Wrapped CSPR is the ERC-20 representation of CSPR used in DEX routing. Users interact with CSPR directly; the SDK handles WCSPR wrapping/unwrapping automatically.

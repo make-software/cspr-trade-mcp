@@ -2,6 +2,9 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { CsprTradeClient, type CsprTradeClientConfig } from '@cspr-trade/sdk';
 
 import { registerMarketDataTools } from './tools/market-data.js';
+import { registerTradingTools } from './tools/trading.js';
+import { registerLiquidityTools } from './tools/liquidity.js';
+import { registerAccountTools } from './tools/account.js';
 
 export function createServer(config: CsprTradeClientConfig): McpServer {
   const client = new CsprTradeClient(config);
@@ -12,5 +15,9 @@ export function createServer(config: CsprTradeClientConfig): McpServer {
   });
 
   registerMarketDataTools(server, client);
+  registerTradingTools(server, client);
+  registerLiquidityTools(server, client);
+  registerAccountTools(server, client);
+
   return server;
 }

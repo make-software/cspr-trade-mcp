@@ -1,4 +1,5 @@
-import { Deploy, PublicKey } from 'casper-js-sdk';
+import casperSdk from 'casper-js-sdk';
+const { Deploy, PublicKey } = casperSdk;
 
 import { HttpClient } from './api/http.js';
 import { TokensApi } from './api/tokens.js';

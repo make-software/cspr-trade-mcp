@@ -1,13 +1,6 @@
-import {
-  Deploy,
-  DeployHeader,
-  ExecutableDeployItem,
-  StoredVersionedContractByHash,
-  ContractHash,
-  Hash,
-  PublicKey,
-  type Args,
-} from 'casper-js-sdk';
+import casperSdk from 'casper-js-sdk';
+import type { Args } from 'casper-js-sdk';
+const { Deploy, DeployHeader, ExecutableDeployItem, StoredVersionedContractByHash, ContractHash, Hash, PublicKey } = casperSdk;
 import type { NetworkConfig } from '../config.js';
 
 export function buildWasmDeploy(params: {

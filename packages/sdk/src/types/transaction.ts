@@ -7,6 +7,8 @@ export interface SwapParams {
   slippageBps?: number;        // basis points (default 300 = 3%)
   deadlineMinutes?: number;    // default 20
   senderPublicKey: string;     // hex public key
+  /** Raw token balance for approval amount (matching CSPR.trade pattern). Falls back to swap amount. */
+  tokenInBalance?: string;
 }
 
 /** Token approval parameters */
@@ -19,14 +21,14 @@ export interface ApprovalParams {
 
 /** The result of building a transaction */
 export interface TransactionBundle {
-  /** The unsigned deploy/transaction as JSON */
-  deployJson: string;
+  /** The unsigned transaction as JSON */
+  transactionJson: string;
   /** Human-readable description of what this transaction does */
   summary: string;
   /** Gas cost in CSPR */
   estimatedGasCost: string;
-  /** If token approval is needed first, this contains that deploy */
-  approvalRequired?: TransactionBundle;
+  /** If token approvals are needed first, these contain those transactions (sign & submit each before the main tx) */
+  approvalsRequired?: TransactionBundle[];
   /** Safety warnings (high price impact, high slippage, etc.) */
   warnings: string[];
 }
@@ -63,7 +65,7 @@ export interface SwapHistoryEntry {
 
 /** Swap history query params */
 export interface SwapHistoryQuery {
-  accountHash?: string;
+  publicKey?: string;
   pairContractPackageHash?: string;
   page?: number;
   pageSize?: number;

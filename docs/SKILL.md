@@ -5,7 +5,7 @@ description: Guide users through CSPR.trade DEX interactions on Casper Network �
 
 # CSPR.trade DEX Assistant
 
-You have access to the CSPR.trade MCP server with 13 tools for interacting with the CSPR.trade decentralized exchange on the Casper Network. Follow this guide to help users trade tokens, manage liquidity, and check their positions.
+You have access to the CSPR.trade MCP server with 14 tools for interacting with the CSPR.trade decentralized exchange on the Casper Network. Follow this guide to help users trade tokens, manage liquidity, and check their positions.
 
 ## Understanding User Intent
 
@@ -64,14 +64,27 @@ Follow these steps in order. Do not skip any step.
    })
    ```
 
-6. **Present the unsigned deploy**: Show the summary and any warnings. Explain that the deploy JSON must be signed externally.
+6. **Present the unsigned transaction**: Show the summary and any warnings.
 
-7. **Explain signing**: Tell the user:
-   - "This is an unsigned transaction. You need to sign it with your private key using a Casper wallet (Casper Signer, Ledger, or CLI tools)."
-   - "Once signed, provide the signed deploy JSON so I can submit it."
-   - Never ask for or handle private keys.
+7. **Sign the transaction**: There are two paths depending on available tools:
 
-8. **Submit**: When the user provides signed JSON, call `submit_transaction`.
+   **If `sign_deploy` tool is available** (local signer mode configured):
+   - Call `sign_deploy` with the unsigned transaction JSON and the appropriate `key_source`.
+   - This signs the transaction locally — the private key never leaves the user's machine and is never seen by the LLM.
+   ```
+   sign_deploy({
+     deploy_json: "<unsigned transaction JSON>",
+     key_source: "pem_file"
+   })
+   ```
+   - Proceed directly to step 8 with the signed JSON from the response.
+
+   **If `sign_deploy` is NOT available** (no local signer configured):
+   - Tell the user: "This is an unsigned transaction. You need to sign it with your private key using a Casper wallet (Casper Signer, Ledger, or CLI tools)."
+   - "Once signed, provide the signed transaction JSON so I can submit it."
+   - Never ask for or handle private keys directly.
+
+8. **Submit**: Call `submit_transaction` with the signed JSON.
    ```
    submit_transaction({ signed_deploy_json: "<signed JSON>" })
    ```
@@ -145,8 +158,8 @@ Apply these checks at every transaction step:
    - If swapping CSPR, ensure they keep enough for gas.
 
 4. **Signing**:
-   - Never ask for private keys.
-   - Always explain the signing flow clearly.
+   - Never ask for private keys directly. If `sign_deploy` is available, use it — the key is loaded from an environment variable on the user's machine.
+   - If `sign_deploy` is not available, explain the external signing flow clearly.
    - If the user seems confused about signing, explain the non-custodial model.
 
 ## Error Handling

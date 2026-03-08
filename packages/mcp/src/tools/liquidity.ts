@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CsprTradeClient } from '@cspr-trade/sdk';
+import { writeDeployFile } from './deploy-file.js';
 
 export function registerLiquidityTools(server: McpServer, client: CsprTradeClient) {
   server.tool(
@@ -14,6 +15,8 @@ export function registerLiquidityTools(server: McpServer, client: CsprTradeClien
       slippage_bps: z.number().optional().describe('Slippage in basis points (default 300)'),
       deadline_minutes: z.number().optional().describe('Deadline in minutes (default 20)'),
       sender_public_key: z.string().describe('Sender hex public key'),
+      token_a_balance: z.string().optional().describe('Raw token A balance for one-time approval'),
+      token_b_balance: z.string().optional().describe('Raw token B balance for one-time approval'),
     },
     async (args) => {
       const bundle = await client.buildAddLiquidity({
@@ -24,8 +27,32 @@ export function registerLiquidityTools(server: McpServer, client: CsprTradeClien
         slippageBps: args.slippage_bps,
         deadlineMinutes: args.deadline_minutes,
         senderPublicKey: args.sender_public_key,
+        tokenABalance: args.token_a_balance,
+        tokenBBalance: args.token_b_balance,
       });
-      return { content: [{ type: 'text' as const, text: bundle.summary + '\n\n' + bundle.deployJson }] };
+
+      const parts = [bundle.summary];
+
+      if (bundle.approvalsRequired?.length) {
+        parts.push('\n--- APPROVALS REQUIRED ---');
+        for (let i = 0; i < bundle.approvalsRequired.length; i++) {
+          const approval = bundle.approvalsRequired[i];
+          const approvalPath = await writeDeployFile(approval.transactionJson);
+          parts.push(`\nStep ${i + 1}: ${approval.summary}`);
+          parts.push(`Approval transaction saved to: ${approvalPath}`);
+          parts.push(`Gas: ${approval.estimatedGasCost}`);
+        }
+        parts.push('\n--- ADD LIQUIDITY TRANSACTION ---');
+      }
+
+      const deployPath = await writeDeployFile(bundle.transactionJson);
+      parts.push(`\nTransaction saved to: ${deployPath}`);
+
+      if (bundle.approvalsRequired?.length) {
+        parts.push('\nWorkflow: Sign and submit each approval with submit_transaction, then sign and submit the add-liquidity transaction with submit_transaction.');
+      }
+
+      return { content: [{ type: 'text' as const, text: parts.join('\n') }] };
     },
   );
 
@@ -47,7 +74,8 @@ export function registerLiquidityTools(server: McpServer, client: CsprTradeClien
         deadlineMinutes: args.deadline_minutes,
         senderPublicKey: args.sender_public_key,
       });
-      return { content: [{ type: 'text' as const, text: bundle.summary + '\n\n' + bundle.deployJson }] };
+      const deployPath = await writeDeployFile(bundle.transactionJson);
+      return { content: [{ type: 'text' as const, text: bundle.summary + `\n\nUnsigned transaction saved to: ${deployPath}` }] };
     },
   );
 }

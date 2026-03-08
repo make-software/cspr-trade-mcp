@@ -1,5 +1,5 @@
 import casperSdk from 'casper-js-sdk';
-const { Deploy, PublicKey } = casperSdk;
+const { PublicKey, HttpHandler, RpcClient, Transaction } = casperSdk;
 
 import { HttpClient } from './api/http.js';
 import { TokensApi } from './api/tokens.js';
@@ -9,7 +9,6 @@ import { LiquidityApi } from './api/liquidity.js';
 import { RatesApi } from './api/rates.js';
 import { CurrenciesApi } from './api/currencies.js';
 import { SwapsApi } from './api/swaps.js';
-import { SubmissionApi } from './api/submission.js';
 import { TokenResolver } from './resolver/token-resolver.js';
 import { CurrencyResolver } from './resolver/currency-resolver.js';
 import {
@@ -25,12 +24,12 @@ import {
   type NetworkConfig,
 } from './config.js';
 import { toRawAmount, toFormattedAmount, calculateMinWithSlippage, calculateMaxWithSlippage } from './utils/amounts.js';
-import { getProxyCallerWasm } from './assets/index.js';
 import { buildProxyWasmArgs } from './transactions/proxy-wasm.js';
 import { getSwapEntryPoint, buildSwapInnerArgs, getSwapAttachedValue } from './transactions/swap.js';
 import { buildAddLiquidityInnerArgs, buildRemoveLiquidityInnerArgs } from './transactions/liquidity.js';
 import { buildApproveArgs } from './transactions/approve.js';
-import { buildWasmDeploy, buildContractCallDeploy } from './transactions/deploy-builder.js';
+import { buildWasmTransaction, buildContractCallTransaction } from './transactions/transaction-builder.js';
+import { getProxyCallerWasm } from './assets/index.js';
 import type {
   Token, Pair, Quote, QuoteParams, QuoteType, Currency,
   LiquidityPosition, LiquidityPositionApiResponse, ImpermanentLoss,
@@ -56,7 +55,6 @@ export class CsprTradeClient {
   private readonly ratesApi: RatesApi;
   private readonly currenciesApi: CurrenciesApi;
   private readonly swapsApi: SwapsApi;
-  private readonly submissionApi: SubmissionApi;
   private readonly tokenResolver: TokenResolver;
   private readonly currencyResolver: CurrencyResolver;
   private readonly networkConfig: NetworkConfig;
@@ -73,14 +71,13 @@ export class CsprTradeClient {
     this.signer = config.signer;
 
     this.http = new HttpClient(this.networkConfig.apiUrl);
-    this.tokensApi = new TokensApi(this.http);
+    this.tokensApi = new TokensApi(this.http, this.networkConfig.wcsprPackageHash);
     this.pairsApi = new PairsApi(this.http);
     this.quotesApi = new QuotesApi(this.http);
     this.liquidityApi = new LiquidityApi(this.http);
     this.ratesApi = new RatesApi(this.http);
     this.currenciesApi = new CurrenciesApi(this.http);
     this.swapsApi = new SwapsApi(this.http);
-    this.submissionApi = new SubmissionApi(this.http);
 
     this.tokenResolver = new TokenResolver(() => this.tokensApi.getTokens());
     this.currencyResolver = new CurrencyResolver(() => this.currenciesApi.getCurrencies());
@@ -109,9 +106,13 @@ export class CsprTradeClient {
 
     const rawAmount = toRawAmount(params.amount, params.type === 'exact_in' ? tokenIn.decimals : tokenOut.decimals);
 
+    // Quote API expects ZERO_HASH for native CSPR (matching frontend behavior)
+    const quoteTokenIn = tokenIn.id === CSPR_TOKEN_ID ? ZERO_HASH : tokenIn.packageHash;
+    const quoteTokenOut = tokenOut.id === CSPR_TOKEN_ID ? ZERO_HASH : tokenOut.packageHash;
+
     const apiQuote = await this.quotesApi.getQuote({
-      tokenIn: tokenIn.packageHash,
-      tokenOut: tokenOut.packageHash,
+      tokenIn: quoteTokenIn,
+      tokenOut: quoteTokenOut,
       amount: rawAmount,
       typeId: params.type === 'exact_in' ? 1 : 2,
     });
@@ -166,8 +167,11 @@ export class CsprTradeClient {
   }
 
   async getSwapHistory(opts?: SwapHistoryQuery) {
+    const accountHash = opts?.publicKey
+      ? PublicKey.fromHex(opts.publicKey).accountHash().toHex()
+      : undefined;
     return this.swapsApi.getSwaps({
-      senderAccountHash: opts?.accountHash,
+      senderAccountHash: accountHash,
       pairContractPackageHash: opts?.pairContractPackageHash,
       page: opts?.page,
       pageSize: opts?.pageSize,
@@ -200,8 +204,6 @@ export class CsprTradeClient {
 
     const accountHash = PublicKey.fromHex(params.senderPublicKey).accountHash().toPrefixedString();
 
-    // Build path with WCSPR substitution
-    const wcsprHash = this.networkConfig.wcsprPackageHash;
     const path = quote.path.map(h => h.startsWith('hash-') ? h : `hash-${h}`);
 
     const entryPoint = getSwapEntryPoint(isFirstTokenNative, isSecondTokenNative, params.type);
@@ -226,27 +228,42 @@ export class CsprTradeClient {
       amountInMax,
     });
 
-    const routerHash = this.networkConfig.routerPackageHash.replace('hash-', '');
-    const outerArgs = buildProxyWasmArgs({
-      routerPackageHash: routerHash,
+    const isBothNotNative = !isFirstTokenNative && !isSecondTokenNative;
+    const gasCost = isBothNotNative ? GAS_COSTS.swapTokenForToken : GAS_COSTS.swapCsprForToken;
+
+    const proxyArgs = buildProxyWasmArgs({
+      routerPackageHash: this.networkConfig.routerPackageHash.replace('hash-', ''),
       entryPoint,
       innerArgs,
       attachedValue,
     });
-
     const wasmBinary = await getProxyCallerWasm();
-    const isBothNotNative = !isFirstTokenNative && !isSecondTokenNative;
-    const gasCost = isBothNotNative ? GAS_COSTS.swapTokenForToken : GAS_COSTS.swapCsprForToken;
-
-    const deploy = buildWasmDeploy({
+    const transaction = buildWasmTransaction({
       publicKey: params.senderPublicKey,
       paymentAmount: gasCost.toString(),
       wasmBinary,
-      runtimeArgs: outerArgs,
+      runtimeArgs: proxyArgs,
       networkConfig: this.networkConfig,
     });
 
     const warnings = buildWarnings(quote.priceImpact, slippageBps);
+
+    // Build approval transaction for non-CSPR input tokens.
+    // When CSPR is the input, the router handles wrapping internally — no approval needed.
+    const approvals: TransactionBundle[] = [];
+    if (!isFirstTokenNative) {
+      const approvalAmount = params.tokenInBalance ?? quote.amountIn;
+      const approval = await this.buildApproval({
+        tokenContractPackageHash: tokenIn.packageHash,
+        spenderPackageHash: this.networkConfig.routerPackageHash,
+        amount: approvalAmount,
+        senderPublicKey: params.senderPublicKey,
+      });
+      approval.summary = params.tokenInBalance
+        ? `Approve ${tokenIn.symbol} for router (full balance — one-time)`
+        : `Approve ${tokenIn.symbol} for router (swap amount only)`;
+      approvals.push(approval);
+    }
 
     const slippagePct = (slippageBps / 100).toFixed(2);
     const summary = [
@@ -259,20 +276,22 @@ export class CsprTradeClient {
     ].join('\n');
 
     return {
-      deployJson: JSON.stringify(Deploy.toJSON(deploy)),
+      transactionJson: JSON.stringify(transaction.toJSON()),
       summary,
       estimatedGasCost: `${Number(gasCost) / 1_000_000_000} CSPR`,
+      approvalsRequired: approvals.length > 0 ? approvals : undefined,
       warnings,
     };
   }
 
   async buildApproval(params: ApprovalParams): Promise<TransactionBundle> {
+    const spender = params.spenderPackageHash || this.networkConfig.routerPackageHash;
     const args = buildApproveArgs({
-      spenderPackageHash: params.spenderPackageHash,
+      spenderPackageHash: spender,
       amount: params.amount,
     });
 
-    const deploy = buildContractCallDeploy({
+    const transaction = buildContractCallTransaction({
       publicKey: params.senderPublicKey,
       paymentAmount: GAS_COSTS.approve.toString(),
       contractPackageHash: params.tokenContractPackageHash,
@@ -282,7 +301,7 @@ export class CsprTradeClient {
     });
 
     return {
-      deployJson: JSON.stringify(Deploy.toJSON(deploy)),
+      transactionJson: JSON.stringify(transaction.toJSON()),
       summary: `Approve token spending for ${params.tokenContractPackageHash.slice(0, 16)}...`,
       estimatedGasCost: `${Number(GAS_COSTS.approve) / 1_000_000_000} CSPR`,
       warnings: [],
@@ -344,20 +363,44 @@ export class CsprTradeClient {
       entryPoint = 'add_liquidity';
     }
 
-    const routerHash = this.networkConfig.routerPackageHash.replace('hash-', '');
-    const outerArgs = buildProxyWasmArgs({ routerPackageHash: routerHash, entryPoint, innerArgs, attachedValue });
-    const wasmBinary = await getProxyCallerWasm();
-
     // Use higher gas for potentially new pools
     const gasCost = GAS_COSTS.addLiquidity; // caller can override if new pool
 
-    const deploy = buildWasmDeploy({
+    const proxyArgs = buildProxyWasmArgs({
+      routerPackageHash: this.networkConfig.routerPackageHash.replace('hash-', ''),
+      entryPoint,
+      innerArgs,
+      attachedValue,
+    });
+    const wasmBinary = await getProxyCallerWasm();
+    const transaction = buildWasmTransaction({
       publicKey: params.senderPublicKey,
       paymentAmount: gasCost.toString(),
       wasmBinary,
-      runtimeArgs: outerArgs,
+      runtimeArgs: proxyArgs,
       networkConfig: this.networkConfig,
     });
+
+    // Build approval transactions for non-CSPR tokens.
+    // When CSPR is one side, the router handles wrapping internally — no approval needed for that side.
+    const tokenBalances = [params.tokenABalance, params.tokenBBalance];
+    const rawAmounts = [rawAmountA, rawAmountB];
+    const approvals: TransactionBundle[] = [];
+    for (let i = 0; i < 2; i++) {
+      const token = [tokenA, tokenB][i];
+      if (token.id === CSPR_TOKEN_ID) continue; // Router handles CSPR wrapping
+      const approvalAmount = tokenBalances[i] ?? rawAmounts[i];
+      const approval = await this.buildApproval({
+        tokenContractPackageHash: token.packageHash,
+        spenderPackageHash: this.networkConfig.routerPackageHash,
+        amount: approvalAmount,
+        senderPublicKey: params.senderPublicKey,
+      });
+      approval.summary = tokenBalances[i]
+        ? `Approve ${token.symbol} for router (full balance — one-time)`
+        : `Approve ${token.symbol} for router (liquidity amount only)`;
+      approvals.push(approval);
+    }
 
     const summary = [
       `Add liquidity: ${params.amountA} ${tokenA.symbol} + ${params.amountB} ${tokenB.symbol}`,
@@ -367,9 +410,10 @@ export class CsprTradeClient {
     ].join('\n');
 
     return {
-      deployJson: JSON.stringify(Deploy.toJSON(deploy)),
+      transactionJson: JSON.stringify(transaction.toJSON()),
       summary,
       estimatedGasCost: `${Number(gasCost) / 1_000_000_000} CSPR`,
+      approvalsRequired: approvals.length > 0 ? approvals : undefined,
       warnings: [],
     };
   }
@@ -434,15 +478,18 @@ export class CsprTradeClient {
       entryPoint = 'remove_liquidity';
     }
 
-    const routerHash = this.networkConfig.routerPackageHash.replace('hash-', '');
-    const outerArgs = buildProxyWasmArgs({ routerPackageHash: routerHash, entryPoint, innerArgs, attachedValue: '0' });
+    const proxyArgs = buildProxyWasmArgs({
+      routerPackageHash: this.networkConfig.routerPackageHash.replace('hash-', ''),
+      entryPoint,
+      innerArgs,
+      attachedValue: '0',
+    });
     const wasmBinary = await getProxyCallerWasm();
-
-    const deploy = buildWasmDeploy({
+    const transaction = buildWasmTransaction({
       publicKey: params.senderPublicKey,
       paymentAmount: GAS_COSTS.removeLiquidity.toString(),
       wasmBinary,
-      runtimeArgs: outerArgs,
+      runtimeArgs: proxyArgs,
       networkConfig: this.networkConfig,
     });
 
@@ -453,7 +500,7 @@ export class CsprTradeClient {
     ].join('\n');
 
     return {
-      deployJson: JSON.stringify(Deploy.toJSON(deploy)),
+      transactionJson: JSON.stringify(transaction.toJSON()),
       summary,
       estimatedGasCost: `${Number(GAS_COSTS.removeLiquidity) / 1_000_000_000} CSPR`,
       warnings: [],
@@ -462,9 +509,20 @@ export class CsprTradeClient {
 
   // --- Transaction Submission ---
 
-  async submitTransaction(signedDeployJson: string): Promise<SubmitResult> {
-    const parsed = JSON.parse(signedDeployJson);
-    return this.submissionApi.submitTransaction(parsed);
+  /** Submit a signed transaction to the Casper node RPC */
+  async submitTransaction(signedTransactionJson: string): Promise<SubmitResult> {
+    const handler = new HttpHandler(this.networkConfig.nodeRpcUrl);
+    const rpcClient = new RpcClient(handler);
+    const transaction = Transaction.fromJSON(JSON.parse(signedTransactionJson));
+    const result = await rpcClient.putTransaction(transaction);
+    return {
+      transactionHash: result.transactionHash?.toHex() ?? '',
+    };
+  }
+
+  /** @deprecated Use submitTransaction instead — all transactions now submit via node RPC */
+  async submitTransactionDirect(signedTransactionJson: string): Promise<SubmitResult> {
+    return this.submitTransaction(signedTransactionJson);
   }
 
   // --- Token Resolution ---

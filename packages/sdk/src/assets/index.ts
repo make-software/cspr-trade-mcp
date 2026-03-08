@@ -8,8 +8,14 @@ export async function getProxyCallerWasm(): Promise<Uint8Array> {
   if (cachedWasm) return cachedWasm;
 
   const currentDir = dirname(fileURLToPath(import.meta.url));
-  const wasmPath = join(currentDir, 'proxy_caller.wasm');
-  const buffer = await readFile(wasmPath);
+  let buffer: Buffer;
+  try {
+    // Bundled: dist/index.js → dist/assets/proxy_caller.wasm
+    buffer = await readFile(join(currentDir, 'assets', 'proxy_caller.wasm'));
+  } catch {
+    // Source: src/assets/index.ts → src/assets/proxy_caller.wasm
+    buffer = await readFile(join(currentDir, 'proxy_caller.wasm'));
+  }
   cachedWasm = new Uint8Array(buffer);
   return cachedWasm;
 }

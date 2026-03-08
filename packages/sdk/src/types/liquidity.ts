@@ -56,6 +56,10 @@ export interface AddLiquidityParams {
   slippageBps?: number;        // basis points (default 300 = 3%)
   deadlineMinutes?: number;    // default 20
   senderPublicKey: string;     // hex public key
+  /** Raw token A balance for approval amount. Falls back to amountA in motes. */
+  tokenABalance?: string;
+  /** Raw token B balance for approval amount. Falls back to amountB in motes. */
+  tokenBBalance?: string;
 }
 
 /** Remove liquidity parameters */

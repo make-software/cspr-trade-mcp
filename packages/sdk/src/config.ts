@@ -1,6 +1,7 @@
 export interface NetworkConfig {
   chainName: string;
   apiUrl: string;
+  nodeRpcUrl: string;
   routerPackageHash: string;
   wcsprPackageHash: string;
   gasPrice: number;
@@ -10,6 +11,7 @@ export interface NetworkConfig {
 export const TESTNET_CONFIG: NetworkConfig = {
   chainName: 'casper-test',
   apiUrl: 'https://cspr-trade-api.dev.make.services',
+  nodeRpcUrl: 'https://node.testnet.casper.network/rpc',
   routerPackageHash: 'hash-04a11a367e708c52557930c4e9c1301f4465100d1b1b6d0a62b48d3e32402867',
   wcsprPackageHash: 'hash-3d80df21ba4ee4d66a2a1f60c32570dd5685e4b279f6538162a5fd1314847c1e',
   gasPrice: 1,
@@ -19,6 +21,7 @@ export const TESTNET_CONFIG: NetworkConfig = {
 export const MAINNET_CONFIG: NetworkConfig = {
   chainName: 'casper',
   apiUrl: 'https://api.cspr.trade',
+  nodeRpcUrl: 'https://node.mainnet.casper.network/rpc',
   // TODO: confirm mainnet addresses
   routerPackageHash: 'hash-0000000000000000000000000000000000000000000000000000000000000000',
   wcsprPackageHash: 'hash-0000000000000000000000000000000000000000000000000000000000000000',

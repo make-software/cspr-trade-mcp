@@ -34,10 +34,11 @@ describe('CsprTradeClient', () => {
   });
 
   it('should expose getQuote method', async () => {
-    // First call: getTokens for resolution
+    // First call: getTokens for resolution (WCSPR gets transformed to CSPR)
     vi.mocked(fetch).mockResolvedValueOnce(
       new Response(JSON.stringify({
         data: [
+          { contract_package_hash: 'hash-3d80df21ba4ee4d66a2a1f60c32570dd5685e4b279f6538162a5fd1314847c1e', contract_package: { metadata: { symbol: 'WCSPR', name: 'Wrapped CSPR', decimals: 9 } } },
           { contract_package_hash: 'hash-aaa', contract_package: { metadata: { symbol: 'USDT', name: 'Tether', decimals: 6 } } },
         ],
       }))

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CsprTradeClient } from '@cspr-trade/sdk';
+import { writeDeployFile, readDeployJson } from './deploy-file.js';
 
 export function registerTradingTools(server: McpServer, client: CsprTradeClient) {
   server.tool(
@@ -14,6 +15,7 @@ export function registerTradingTools(server: McpServer, client: CsprTradeClient)
       slippage_bps: z.number().optional().describe('Slippage tolerance in basis points (default 300 = 3%)'),
       deadline_minutes: z.number().optional().describe('Transaction deadline in minutes (default 20)'),
       sender_public_key: z.string().describe('Sender hex public key (e.g., "01abc...")'),
+      token_in_balance: z.string().optional().describe('Raw input token balance for one-time approval (e.g., from wallet). If omitted, approves exact swap amount only.'),
     },
     async (args) => {
       const bundle = await client.buildSwap({
@@ -24,14 +26,35 @@ export function registerTradingTools(server: McpServer, client: CsprTradeClient)
         slippageBps: args.slippage_bps,
         deadlineMinutes: args.deadline_minutes,
         senderPublicKey: args.sender_public_key,
+        tokenInBalance: args.token_in_balance,
       });
 
       const parts = [bundle.summary];
       if (bundle.warnings.length > 0) {
         parts.push('\nWARNINGS:\n' + bundle.warnings.join('\n'));
       }
-      parts.push('\nUnsigned deploy JSON (sign externally, then use submit_transaction):');
-      parts.push(bundle.deployJson);
+
+      // Write approval transactions first, then the main swap
+      if (bundle.approvalsRequired?.length) {
+        parts.push('\n--- APPROVAL REQUIRED ---');
+        for (let i = 0; i < bundle.approvalsRequired.length; i++) {
+          const approval = bundle.approvalsRequired[i];
+          const approvalPath = await writeDeployFile(approval.transactionJson);
+          parts.push(`\nStep ${i + 1}: ${approval.summary}`);
+          parts.push(`Approval transaction saved to: ${approvalPath}`);
+          parts.push(`Gas: ${approval.estimatedGasCost}`);
+        }
+        parts.push('\n--- SWAP TRANSACTION ---');
+      }
+
+      const deployPath = await writeDeployFile(bundle.transactionJson);
+      parts.push(`\nSwap transaction saved to: ${deployPath}`);
+
+      if (bundle.approvalsRequired?.length) {
+        parts.push('\nWorkflow: Sign and submit each approval with submit_transaction, then sign and submit the swap with submit_transaction.');
+      } else {
+        parts.push('Pass this path to sign_deploy, then use submit_transaction.');
+      }
 
       return { content: [{ type: 'text' as const, text: parts.join('\n') }] };
     },
@@ -39,31 +62,34 @@ export function registerTradingTools(server: McpServer, client: CsprTradeClient)
 
   server.tool(
     'build_approve_token',
-    'Build an unsigned token approval transaction.',
+    'Build an unsigned token approval transaction. Spender defaults to the CSPR.trade router.',
     {
       token: z.string().describe('Token contract package hash to approve'),
-      amount: z.string().describe('Raw amount to approve'),
+      amount: z.string().describe('Raw amount to approve (in smallest unit / motes)'),
       sender_public_key: z.string().describe('Sender hex public key'),
+      spender: z.string().optional().describe('Spender contract package hash (defaults to CSPR.trade router)'),
     },
     async (args) => {
       const bundle = await client.buildApproval({
         tokenContractPackageHash: args.token,
-        spenderPackageHash: '',
+        spenderPackageHash: args.spender ?? '',
         amount: args.amount,
         senderPublicKey: args.sender_public_key,
       });
-      return { content: [{ type: 'text' as const, text: bundle.summary + '\n\n' + bundle.deployJson }] };
+      const deployPath = await writeDeployFile(bundle.transactionJson);
+      return { content: [{ type: 'text' as const, text: bundle.summary + `\n\nUnsigned transaction saved to: ${deployPath}` }] };
     },
   );
 
   server.tool(
     'submit_transaction',
-    'Submit a signed deploy/transaction to the Casper network via the CSPR.trade API',
+    'Submit a signed transaction to the Casper network via node RPC.',
     {
-      signed_deploy_json: z.string().describe('The signed deploy JSON string'),
+      signed_deploy_json: z.string().describe('The signed deploy JSON string, or a file path to a signed deploy JSON file'),
     },
     async ({ signed_deploy_json }) => {
-      const result = await client.submitTransaction(signed_deploy_json);
+      const json = await readDeployJson(signed_deploy_json);
+      const result = await client.submitTransaction(json);
       return { content: [{ type: 'text' as const, text: `Transaction submitted. Hash: ${result.transactionHash}` }] };
     },
   );

@@ -33,14 +33,14 @@ export function registerAccountTools(server: McpServer, client: CsprTradeClient)
     'get_swap_history',
     'Get swap transaction history',
     {
-      account_hash: z.string().optional().describe('Filter by account hash'),
+      public_key: z.string().optional().describe('Filter by sender public key (hex)'),
       pair: z.string().optional().describe('Filter by pair contract package hash'),
       page: z.number().optional(),
       page_size: z.number().optional(),
     },
     async (args) => {
       const result = await client.getSwapHistory({
-        accountHash: args.account_hash,
+        publicKey: args.public_key,
         pairContractPackageHash: args.pair,
         page: args.page,
         pageSize: args.page_size,

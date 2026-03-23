@@ -1,0 +1,24 @@
+[Unit]
+Description=CSPR.trade MCP server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=jeanclaude
+Group=jeanclaude
+WorkingDirectory=/home/jeanclaude/workspace/cspr-trade-mcp-worktrees/feat/deploy-csprtrade-mcp-server-to-mcpcsprtr
+Environment=CSPR_TRADE_NETWORK=mainnet
+Environment=CSPR_TRADE_TRANSPORT=http
+Environment=CSPR_TRADE_HOST=127.0.0.1
+Environment=CSPR_TRADE_PORT=3010
+Environment=CSPR_TRADE_RATE_LIMIT_WINDOW_MS=60000
+Environment=CSPR_TRADE_RATE_LIMIT_MAX=60
+ExecStart=/usr/bin/env node /home/jeanclaude/workspace/cspr-trade-mcp-worktrees/feat/deploy-csprtrade-mcp-server-to-mcpcsprtr/packages/mcp/dist/index.js
+Restart=always
+RestartSec=3
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

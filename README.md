@@ -68,6 +68,30 @@ CSPR_TRADE_NETWORK=testnet CSPR_TRADE_TRANSPORT=http CSPR_TRADE_PORT=3001 \
 
 Then point any MCP client at `http://your-host:3001/mcp`.
 
+Health checks are available at `/health` and return:
+
+```json
+{"status":"ok","version":"0.1.0","network":"testnet","transport":"http"}
+```
+
+### Public mainnet endpoint
+
+The production public MCP endpoint is:
+
+- MCP: `https://mcp.cspr.trade/mcp`
+- Health: `https://mcp.cspr.trade/health`
+
+Expected health response:
+
+```json
+{"status":"ok","version":"0.1.0","network":"mainnet","transport":"http"}
+```
+
+Production deployment reference files live in:
+
+- `packages/mcp/deploy/systemd/cspr-trade-mcp.service`
+- `packages/mcp/deploy/nginx/mcp.cspr.trade.conf`
+
 ### Local signing
 
 For end-to-end transaction flows, add a local signer alongside the main server:

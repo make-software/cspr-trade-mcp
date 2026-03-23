@@ -37,6 +37,26 @@ CSPR_TRADE_NETWORK=testnet CSPR_TRADE_TRANSPORT=http CSPR_TRADE_PORT=3001 \
 
 Point any MCP client at `http://your-host:3001/mcp`.
 
+The HTTP transport also exposes a health endpoint at `/health`.
+
+### Public production endpoint
+
+The intended public mainnet endpoint is:
+
+- MCP: `https://mcp.cspr.trade/mcp`
+- Health: `https://mcp.cspr.trade/health`
+
+Expected health response:
+
+```json
+{"status":"ok","version":"0.1.0","network":"mainnet","transport":"http"}
+```
+
+Deployment examples are included here:
+
+- `deploy/systemd/cspr-trade-mcp.service`
+- `deploy/nginx/mcp.cspr.trade.conf`
+
 ### Local signer (--signer mode)
 
 A separate, local-only MCP instance that signs deploys without exposing private keys to the network or the LLM.

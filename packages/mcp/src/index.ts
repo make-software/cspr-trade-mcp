@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import type { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import type { IncomingMessage, ServerResponse } from 'node:http';
+import type { Request, Response } from 'express';
 import { createServer, createSignerServer } from './server.js';
 
 const signerMode = process.argv.includes('--signer');
@@ -33,7 +33,7 @@ if (transport === 'http') {
   const rateLimitConfig = getRateLimitConfig();
 
   app.set('trust proxy', 1);
-  app.use(rateLimit({
+  app.use('/mcp', rateLimit({
     windowMs: rateLimitConfig.windowMs,
     max: rateLimitConfig.max,
     standardHeaders: true,
@@ -45,7 +45,7 @@ if (transport === 'http') {
     },
   }));
 
-  app.get('/health', (_req: IncomingMessage, res: ServerResponse) => {
+  app.get('/health', (_req: Request, res: Response) => {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
       status: 'ok',
@@ -58,7 +58,7 @@ if (transport === 'http') {
   // Track transports by session ID for cleanup
   const transports = new Map<string, StreamableHTTPServerTransport>();
 
-  app.post('/mcp', async (req: IncomingMessage & { body?: unknown }, res: ServerResponse) => {
+  app.post('/mcp', async (req: Request & { body?: unknown }, res: Response) => {
     const existingSessionId = req.headers['mcp-session-id'] as string | undefined;
     const existing = existingSessionId ? transports.get(existingSessionId) : undefined;
     if (existing) {
@@ -83,7 +83,7 @@ if (transport === 'http') {
     if (sid) transports.set(sid, sessionTransport);
   });
 
-  app.get('/mcp', async (req: IncomingMessage, res: ServerResponse) => {
+  app.get('/mcp', async (req: Request, res: Response) => {
     const sessionId = req.headers['mcp-session-id'] as string | undefined;
     const sessionTransport = sessionId ? transports.get(sessionId) : undefined;
     if (!sessionTransport) {
@@ -94,7 +94,7 @@ if (transport === 'http') {
     await sessionTransport.handleRequest(req, res);
   });
 
-  app.delete('/mcp', async (req: IncomingMessage, res: ServerResponse) => {
+  app.delete('/mcp', async (req: Request, res: Response) => {
     const sessionId = req.headers['mcp-session-id'] as string | undefined;
     const sessionTransport = sessionId ? transports.get(sessionId) : undefined;
     if (!sessionTransport) {
@@ -105,7 +105,7 @@ if (transport === 'http') {
     await sessionTransport.handleRequest(req, res);
   });
 
-  app.use((_req: IncomingMessage, res: ServerResponse) => {
+  app.use((_req: Request, res: Response) => {
     res.writeHead(404, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'Not found' }));
   });

@@ -16,11 +16,13 @@
     "@modelcontextprotocol/sdk": "^1.0.0",
     "casper-js-sdk": "^5.0.6",
     "@scure/bip39": "^1.6.0",
-    "@scure/bip32": "^1.7.0"
+    "@scure/bip32": "^1.7.0",
+    "express-rate-limit": "^8.2.1"
   },
   "devDependencies": {
     "tsup": "^8.0.0",
     "typescript": "^5.7.0",
-    "vitest": "^3.0.0"
+    "vitest": "^3.0.0",
+    "@types/express": "^5.0.1"
   }
 }

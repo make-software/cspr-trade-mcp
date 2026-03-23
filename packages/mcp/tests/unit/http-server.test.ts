@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const createServerMock = vi.fn(() => ({ connect: vi.fn().mockResolvedValue(undefined) }));
 const createSignerServerMock = vi.fn(() => ({ connect: vi.fn().mockResolvedValue(undefined) }));
+const rateLimitMock = vi.fn((config) => ({ __rateLimitConfig: config }));
 const appUse = vi.fn();
 const appGet = vi.fn();
 const appPost = vi.fn();
@@ -41,6 +42,10 @@ vi.mock('@modelcontextprotocol/sdk/server/streamableHttp.js', () => ({
   },
 }));
 
+vi.mock('express-rate-limit', () => ({
+  rateLimit: rateLimitMock,
+}));
+
 describe('HTTP server bootstrap', () => {
   afterEach(() => {
     vi.resetModules();
@@ -52,7 +57,7 @@ describe('HTTP server bootstrap', () => {
     delete process.env.CSPR_TRADE_PORT;
   });
 
-  it('registers a /health endpoint and configures trust proxy + rate limiting defaults for HTTP transport', async () => {
+  it('registers a /health endpoint and configures trust proxy + scoped rate limiting defaults for HTTP transport', async () => {
     process.env.CSPR_TRADE_TRANSPORT = 'http';
 
     await import('../../src/index.js');
@@ -60,7 +65,22 @@ describe('HTTP server bootstrap', () => {
     expect(createMcpExpressAppMock).toHaveBeenCalled();
     expect(appSet).toHaveBeenCalledWith('trust proxy', 1);
     expect(appGet).toHaveBeenCalledWith('/health', expect.any(Function));
-    expect(appUse).toHaveBeenCalled();
+    expect(rateLimitMock).toHaveBeenCalledWith(expect.objectContaining({
+      windowMs: 60000,
+      max: 60,
+      standardHeaders: true,
+      legacyHeaders: false,
+      statusCode: 503,
+      message: {
+        error: 'Rate limit exceeded',
+        retryable: true,
+      },
+    }));
+    expect(appUse).toHaveBeenCalledWith('/mcp', expect.objectContaining({
+      __rateLimitConfig: expect.objectContaining({
+        statusCode: 503,
+      }),
+    }));
     expect(appPost).toHaveBeenCalledWith('/mcp', expect.any(Function));
     expect(appListen).toHaveBeenCalled();
   });

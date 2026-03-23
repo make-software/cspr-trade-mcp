@@ -29,7 +29,10 @@ if (transport === 'http') {
 
   const host = process.env.CSPR_TRADE_HOST ?? '0.0.0.0';
   const port = Number(process.env.CSPR_TRADE_PORT ?? '3000');
-  const app = createMcpExpressApp({ host });
+  const allowedHosts = process.env.CSPR_TRADE_ALLOWED_HOSTS
+    ? process.env.CSPR_TRADE_ALLOWED_HOSTS.split(',').map(h => h.trim())
+    : undefined;
+  const app = createMcpExpressApp({ host, allowedHosts });
   const rateLimitConfig = getRateLimitConfig();
 
   app.set('trust proxy', 1);

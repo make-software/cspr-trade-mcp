@@ -17,3 +17,9 @@ This file contains the rules and conventions for agents working on this project.
 
 ## Important Notes
 <!-- Any critical rules or gotchas -->
+
+
+## Code Style — Section Comments
+**NEVER use `=====` or `-----` in section divider comments.**
+Agents and tools confuse them with git merge conflict markers.
+Use this format instead: `// — Section Name`

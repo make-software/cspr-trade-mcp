@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "cspr-trade": {
+      "url": "https://mcp.cspr.trade/mcp",
+      "transport": "http"
+    }
+  }
+}

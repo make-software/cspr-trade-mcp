@@ -1,0 +1,53 @@
+name: Publish
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  # Publish npm packages
+  npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - run: npm run build --workspaces
+      - run: npm test --workspaces
+      - name: Publish @cspr-trade/sdk
+        run: npm publish --workspace packages/sdk --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish @cspr-trade/mcp
+        run: npm publish --workspace packages/mcp --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # Publish skill to ClawHub
+  clawhub:
+    runs-on: ubuntu-latest
+    needs: npm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Login to ClawHub
+        run: npx clawhub@latest login --token "$CLAWHUB_TOKEN" --no-browser
+        env:
+          CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
+      - name: Publish skill
+        run: |
+          npx clawhub@latest publish skill/cspr-trade \
+            --slug cspr-trade \
+            --name "CSPR.trade DEX" \
+            --version "${{ github.event.release.tag_name }}" \
+            --tags latest \
+            --changelog "${{ github.event.release.body }}"

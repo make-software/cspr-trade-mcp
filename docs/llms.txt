@@ -13,11 +13,11 @@ The `@make-software/cspr-trade-mcp` server exposes 14 tools over the Model Conte
 ### Configuration
 
 Set environment variables before starting:
-- `CSPR_TRADE_NETWORK` — `testnet` or `mainnet` (default: `mainnet`)
-- `CSPR_TRADE_API_URL` — Override API base URL (optional)
-- `CSPR_TRADE_TRANSPORT` — `stdio` (default) or `http`
-- `CSPR_TRADE_HOST` — HTTP listen host (default: `0.0.0.0`)
-- `CSPR_TRADE_PORT` — HTTP listen port (default: `3000`)
+- `CSPR_TRADE_NETWORK` -- `testnet` or `mainnet` (default: `mainnet`)
+- `CSPR_TRADE_API_URL` -- Override API base URL (optional)
+- `CSPR_TRADE_TRANSPORT` -- `stdio` (default) or `http`
+- `CSPR_TRADE_HOST` -- HTTP listen host (default: `0.0.0.0`)
+- `CSPR_TRADE_PORT` -- HTTP listen port (default: `3000`)
 
 ### Usage with Claude Desktop / Claude Code
 
@@ -37,7 +37,7 @@ Set environment variables before starting:
 
 ### Local Signer (optional, for end-to-end transaction flows)
 
-Run a second instance in `--signer` mode alongside the main server. This gives agents a `sign_deploy` tool that signs deploys locally — the private key never leaves the machine and is never seen by the LLM.
+Run a second instance in `--signer` mode alongside the main server. This gives agents a `sign_deploy` tool that signs deploys locally -- the private key never leaves the machine and is never seen by the LLM.
 
 ```json
 {
@@ -57,9 +57,9 @@ Run a second instance in `--signer` mode alongside the main server. This gives a
 ```
 
 Signer environment variables (set one):
-- `CSPR_TRADE_KEY_PATH` — Path to PEM private key file
-- `CSPR_TRADE_KEY_PEM` — PEM key content (inline)
-- `CSPR_TRADE_MNEMONIC` — BIP-39 mnemonic phrase (12 or 24 words)
+- `CSPR_TRADE_KEY_PATH` -- Path to PEM private key file
+- `CSPR_TRADE_KEY_PEM` -- PEM key content (inline)
+- `CSPR_TRADE_MNEMONIC` -- BIP-39 mnemonic phrase (12 or 24 words)
 
 ## Token Identification
 
@@ -68,7 +68,7 @@ Tokens can be identified by:
 - **Name**: `"Casper"`, `"Tether USD"`
 - **Contract package hash**: `"hash-3d80df21ba4ee4d66a2a1f60c32570dd5685e4b279f6538162a5fd1314847c1e"`
 
-The SDK resolves these automatically. Symbols are case-insensitive. CSPR is the native token and has special handling — it uses the Wrapped CSPR (WCSPR) contract for on-chain routing but is presented as CSPR to users.
+The SDK resolves these automatically. Symbols are case-insensitive. CSPR is the native token and has special handling -- it uses the Wrapped CSPR (WCSPR) contract for on-chain routing but is presented as CSPR to users.
 
 ## Tools Reference
 
@@ -128,8 +128,8 @@ Returns: Detailed pair info with reserves, token metadata, and pricing.
 Get a swap quote for trading between two tokens. Returns amounts, price impact, and routing path.
 
 Parameters:
-- `token_in` (string, required): Input token — symbol, name, or contract hash
-- `token_out` (string, required): Output token — symbol, name, or contract hash
+- `token_in` (string, required): Input token -- symbol, name, or contract hash
+- `token_out` (string, required): Output token -- symbol, name, or contract hash
 - `amount` (string, required): Human-readable amount, e.g. `"100"` for 100 CSPR
 - `type` (string, required): `"exact_in"` (specify input amount) or `"exact_out"` (specify desired output)
 
@@ -162,8 +162,8 @@ Returns: Array of currencies with id, code, name, symbol.
 Build an unsigned swap transaction. Returns the deploy JSON for external signing, plus a human-readable summary.
 
 Parameters:
-- `token_in` (string, required): Input token — symbol, name, or contract hash
-- `token_out` (string, required): Output token — symbol, name, or contract hash
+- `token_in` (string, required): Input token -- symbol, name, or contract hash
+- `token_out` (string, required): Output token -- symbol, name, or contract hash
 - `amount` (string, required): Human-readable amount
 - `type` (string, required): `"exact_in"` or `"exact_out"`
 - `slippage_bps` (number, optional): Slippage tolerance in basis points (default 300 = 3%)
@@ -227,8 +227,8 @@ Returns: Transaction hash string.
 Build an unsigned add-liquidity transaction for a token pair.
 
 Parameters:
-- `token_a` (string, required): First token — symbol, name, or hash
-- `token_b` (string, required): Second token — symbol, name, or hash
+- `token_a` (string, required): First token -- symbol, name, or hash
+- `token_b` (string, required): Second token -- symbol, name, or hash
 - `amount_a` (string, required): Human-readable amount of first token
 - `amount_b` (string, required): Human-readable amount of second token
 - `slippage_bps` (number, optional): Slippage in basis points (default 300)
@@ -368,7 +368,7 @@ Step 2: Get a quote for swapping 1000 CSPR to USDT.
 get_quote({ token_in: "CSPR", token_out: "USDT", amount: "1000", type: "exact_in" })
 ```
 
-Step 3: Review the quote — check amountOutFormatted, priceImpact, and pathSymbols.
+Step 3: Review the quote -- check amountOutFormatted, priceImpact, and pathSymbols.
 
 ### 2. Execute a Swap (Full Flow)
 
@@ -446,11 +446,11 @@ get_impermanent_loss({
 
 This MCP server is **non-custodial**. It never handles private keys. The flow is:
 
-1. **Build** — The server creates an unsigned transaction JSON with all transaction parameters.
-2. **Sign** — Either:
-   - **With `sign_deploy` tool** (if `--signer` mode is configured): Call `sign_deploy` to sign locally. The private key is loaded from an environment variable on the user's machine — it never crosses the network and is never seen by the LLM.
+1. **Build** -- The server creates an unsigned transaction JSON with all transaction parameters.
+2. **Sign** -- Either:
+   - **With `sign_deploy` tool** (if `--signer` mode is configured): Call `sign_deploy` to sign locally. The private key is loaded from an environment variable on the user's machine -- it never crosses the network and is never seen by the LLM.
    - **Externally**: The user signs using their own key management (Casper Signer browser extension, Ledger hardware wallet, CLI tools, or any Casper-compatible wallet).
-3. **Submit** — The signed transaction JSON is submitted to the Casper network via `submit_transaction`.
+3. **Submit** -- The signed transaction JSON is submitted to the Casper network via `submit_transaction`.
 
 The unsigned transaction JSON follows the Casper TransactionV1 format and can be signed by any tool that supports Casper transactions. Never ask users for private keys directly. If `sign_deploy` is available, prefer using it for a seamless flow.
 
@@ -463,9 +463,10 @@ The unsigned transaction JSON follows the Casper TransactionV1 format and can be
 - **Chain name**: `casper-test`
 
 ### Mainnet
+- **Router**: `hash-1dbac65585475fec53e5b1f9110923c8d232921702097e83105b36751d682186`
+- **WCSPR**: `hash-8df5d26790e18cf0404502c62ce5dc9025800ad6975c97466e20506c39c505b6`
 - **API URL**: `https://api.cspr.trade`
 - **Chain name**: `casper`
-- Note: Mainnet contract addresses are pending confirmation.
 
 ## Gas Costs
 

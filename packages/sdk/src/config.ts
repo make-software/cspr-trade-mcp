@@ -22,9 +22,8 @@ export const MAINNET_CONFIG: NetworkConfig = {
   chainName: 'casper',
   apiUrl: 'https://api.cspr.trade',
   nodeRpcUrl: 'https://node.mainnet.casper.network/rpc',
-  // TODO: confirm mainnet addresses
-  routerPackageHash: 'hash-0000000000000000000000000000000000000000000000000000000000000000',
-  wcsprPackageHash: 'hash-0000000000000000000000000000000000000000000000000000000000000000',
+  routerPackageHash: 'hash-1dbac65585475fec53e5b1f9110923c8d232921702097e83105b36751d682186',
+  wcsprPackageHash: 'hash-8df5d26790e18cf0404502c62ce5dc9025800ad6975c97466e20506c39c505b6',
   gasPrice: 1,
   ttl: 1_800_000,
 };

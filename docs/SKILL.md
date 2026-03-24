@@ -1,6 +1,6 @@
 ---
 name: cspr-trade
-description: Guide users through CSPR.trade DEX interactions on Casper Network — swaps, liquidity, and portfolio queries using the cspr-trade MCP tools.
+description: Guide users through CSPR.trade DEX interactions on Casper Network -- swaps, liquidity, and portfolio queries using the cspr-trade MCP tools.
 ---
 
 # CSPR.trade DEX Assistant
@@ -11,12 +11,12 @@ You have access to the CSPR.trade MCP server with 14 tools for interacting with 
 
 When a user asks about CSPR.trade or Casper DEX operations, classify their intent:
 
-1. **Price check / market data** — They want to see token prices, pairs, or get a quote. No signing required.
-2. **Swap / trade** — They want to exchange one token for another. Requires building, signing, and submitting.
-3. **Add liquidity** — They want to become a liquidity provider. Requires building, signing, and submitting.
-4. **Remove liquidity** — They want to withdraw their LP position. Requires building, signing, and submitting.
-5. **Portfolio / position check** — They want to see their LP positions or impermanent loss. Read-only.
-6. **History** — They want to see past swap transactions. Read-only.
+1. **Price check / market data** -- They want to see token prices, pairs, or get a quote. No signing required.
+2. **Swap / trade** -- They want to exchange one token for another. Requires building, signing, and submitting.
+3. **Add liquidity** -- They want to become a liquidity provider. Requires building, signing, and submitting.
+4. **Remove liquidity** -- They want to withdraw their LP position. Requires building, signing, and submitting.
+5. **Portfolio / position check** -- They want to see their LP positions or impermanent loss. Read-only.
+6. **History** -- They want to see past swap transactions. Read-only.
 
 ## Step-by-Step Workflows
 
@@ -70,7 +70,7 @@ Follow these steps in order. Do not skip any step.
 
    **If `sign_deploy` tool is available** (local signer mode configured):
    - Call `sign_deploy` with the unsigned transaction JSON and the appropriate `key_source`.
-   - This signs the transaction locally — the private key never leaves the user's machine and is never seen by the LLM.
+   - This signs the transaction locally -- the private key never leaves the user's machine and is never seen by the LLM.
    ```
    sign_deploy({
      deploy_json: "<unsigned transaction JSON>",
@@ -131,8 +131,8 @@ Follow these steps in order. Do not skip any step.
 ## Token Resolution
 
 - Users typically refer to tokens by symbol: "CSPR", "USDT", "WCSPR", "USDC".
-- The SDK handles resolution automatically — symbols, names, and contract hashes all work.
-- CSPR is the native token. WCSPR is its wrapped version used internally for DEX routing. Users should use "CSPR" — the SDK handles WCSPR conversion.
+- The SDK handles resolution automatically -- symbols, names, and contract hashes all work.
+- CSPR is the native token. WCSPR is its wrapped version used internally for DEX routing. Users should use "CSPR" -- the SDK handles WCSPR conversion.
 - If a token cannot be resolved, the API will return an error. In that case:
   - Suggest the user call `get_tokens` to see available tokens.
   - Ask the user to verify the token name or provide the contract hash.
@@ -158,7 +158,7 @@ Apply these checks at every transaction step:
    - If swapping CSPR, ensure they keep enough for gas.
 
 4. **Signing**:
-   - Never ask for private keys directly. If `sign_deploy` is available, use it — the key is loaded from an environment variable on the user's machine.
+   - Never ask for private keys directly. If `sign_deploy` is available, use it -- the key is loaded from an environment variable on the user's machine.
    - If `sign_deploy` is not available, explain the external signing flow clearly.
    - If the user seems confused about signing, explain the non-custodial model.
 
@@ -177,5 +177,7 @@ Apply these checks at every transaction step:
 - **Default slippage**: 3% (300 basis points)
 - **Default deadline**: 20 minutes
 - **CSPR decimals**: 9 (1 CSPR = 1,000,000,000 motes)
+- **Mainnet router**: `hash-1dbac65585475fec53e5b1f9110923c8d232921702097e83105b36751d682186`
+- **Mainnet WCSPR**: `hash-8df5d26790e18cf0404502c62ce5dc9025800ad6975c97466e20506c39c505b6`
 - **Testnet router**: `hash-04a11a367e708c52557930c4e9c1301f4465100d1b1b6d0a62b48d3e32402867`
 - **Testnet WCSPR**: `hash-3d80df21ba4ee4d66a2a1f60c32570dd5685e4b279f6538162a5fd1314847c1e`

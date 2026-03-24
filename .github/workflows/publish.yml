@@ -39,15 +39,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Login to ClawHub
-        run: npx clawhub@latest login --token "$CLAWHUB_TOKEN" --no-browser
-        env:
-          CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
-      - name: Publish skill
+      - name: Publish to ClawHub
         run: |
-          npx clawhub@latest publish skill/cspr-trade \
-            --slug cspr-trade \
-            --name "CSPR.trade DEX" \
-            --version "${{ github.event.release.tag_name }}" \
+          npx clawhub@latest login --token ${{ secrets.CLAWHUB_TOKEN }} --no-browser
+          npx clawhub@latest publish ./skill/cspr-trade \
+            --slug cspr-trade-mcp \
+            --name "CSPR.trade MCP" \
+            --version ${{ github.ref_name }} \
             --tags latest \
-            --changelog "${{ github.event.release.body }}"
+            --changelog "Release ${{ github.ref_name }}" \
+            --no-input

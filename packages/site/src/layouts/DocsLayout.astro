@@ -1,0 +1,34 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import DocsSidebar, { externalItems, navItems } from '../components/DocsSidebar.astro';
+import MobileDocsNav from '../components/MobileDocsNav.astro';
+import TableOfContents from '../components/TableOfContents.astro';
+import CopyCodeScript from '../components/CopyCodeScript.astro';
+import type { HeadingLink } from '../content/docs';
+
+interface Props {
+  title: string;
+  description: string;
+  headings: HeadingLink[];
+}
+
+const { title, description, headings } = Astro.props;
+---
+
+<BaseLayout title={`${title} · CSPR.trade MCP`} description={description}>
+  <main class="container-shell py-10 sm:py-14">
+    <div class="mb-6">
+      <MobileDocsNav currentPath={Astro.url.pathname} navItems={navItems} externalItems={externalItems} />
+    </div>
+    <div class="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[240px_minmax(0,1fr)_200px]">
+      <DocsSidebar currentPath={Astro.url.pathname} />
+      <article class="glass-card min-w-0 rounded-[1.75rem] p-6 sm:p-8 lg:p-10">
+        <div class="prose-docs">
+          <slot />
+        </div>
+      </article>
+      <TableOfContents headings={headings} />
+    </div>
+  </main>
+  <CopyCodeScript />
+</BaseLayout>

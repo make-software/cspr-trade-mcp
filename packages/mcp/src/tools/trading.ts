@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import type { CsprTradeClient } from '@cspr-trade/sdk';
+import type { CsprTradeClient } from '@make-software/cspr-trade-mcp-sdk';
 import { writeDeployFile, readDeployJson } from './deploy-file.js';
 
 export function registerTradingTools(server: McpServer, client: CsprTradeClient) {

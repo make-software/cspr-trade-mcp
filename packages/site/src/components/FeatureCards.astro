@@ -1,0 +1,33 @@
+---
+const features = [
+  {
+    title: 'Instant Connection',
+    body: 'Point your MCP client at mcp.cspr.trade/mcp and start querying. No API keys, no local setup, no dependencies.',
+  },
+  {
+    title: '14 MCP Tools',
+    body: 'Market data, swaps, liquidity operations, account history, and local signing — one clean tool surface.',
+  },
+  {
+    title: 'Non-Custodial',
+    body: 'Transactions are built remotely but signed locally. Private keys stay on your machine, where they belong.',
+  },
+  {
+    title: 'Run Your Own',
+    body: 'Need testnet or a private instance? Install the npm packages and run locally via stdio or HTTP in minutes.',
+  },
+];
+---
+
+<section class="py-12 sm:py-16">
+  <div class="container-shell">
+    <div class="grid gap-4 md:grid-cols-2">
+      {features.map((feature) => (
+        <article class="glass-card rounded-[1.5rem] p-6 transition hover:-translate-y-1 hover:border-white/12 hover:bg-white/[0.045]">
+          <h3 class="text-xl font-semibold text-white">{feature.title}</h3>
+          <p class="mt-3 text-base leading-7 text-text-secondary">{feature.body}</p>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>

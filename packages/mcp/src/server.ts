@@ -1,5 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { CsprTradeClient, type CsprTradeClientConfig } from '@cspr-trade/sdk';
+import { CsprTradeClient, type CsprTradeClientConfig } from '@make-software/cspr-trade-mcp-sdk';
 
 import { registerMarketDataTools } from './tools/market-data.js';
 import { registerTradingTools } from './tools/trading.js';

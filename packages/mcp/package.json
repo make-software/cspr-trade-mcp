@@ -1,5 +1,5 @@
 {
-  "name": "@cspr-trade/mcp",
+  "name": "@make-software/cspr-trade-mcp",
   "version": "0.1.0",
   "type": "module",
   "main": "dist/index.js",
@@ -12,12 +12,12 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@cspr-trade/sdk": "*",
     "@modelcontextprotocol/sdk": "^1.0.0",
     "@scure/bip32": "^1.7.0",
     "@scure/bip39": "^1.6.0",
     "casper-js-sdk": "^5.0.6",
-    "express-rate-limit": "^8.2.1"
+    "express-rate-limit": "^8.2.1",
+    "@make-software/cspr-trade-mcp-sdk": "*"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",

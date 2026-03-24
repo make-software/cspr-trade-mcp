@@ -48,13 +48,19 @@ Add to `.cursor/mcp.json`:
 
 ### OpenClaw / AI Agent Frameworks
 
-Point your agent at the SKILL.md for automatic setup:
+Install the skill from [ClawHub](https://clawhub.com):
+
+```bash
+npx clawhub@latest install cspr-trade-mcp
+```
+
+This installs a complete agent skill with workflow instructions — intent classification, quote-before-swap patterns, price impact warnings, signing flows, and error handling. Your agent reads it and knows how to use all 14 tools correctly.
+
+Alternatively, point your agent at the raw SKILL.md:
 
 ```
 https://mcp.cspr.trade/SKILL.md
 ```
-
-The SKILL.md contains complete workflow instructions — intent classification, step-by-step signing flows, safety checks, and error handling. Your agent reads it and knows how to use all 14 tools.
 
 There's also an [`llms.txt`](https://mcp.cspr.trade/llms.txt) with the full tool reference for LLM context.
 

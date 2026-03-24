@@ -193,11 +193,24 @@ This ships the same week Casper Network upgraded to v2.2.0 on mainnet. The v2.2.
 
 ---
 
+## OpenClaw Skill
+
+Using [OpenClaw](https://openclaw.ai)? Install the skill from [ClawHub](https://clawhub.com) and your agent gets the full workflow guide — intent classification, signing flows, safety checks — baked in:
+
+```bash
+npx clawhub@latest install cspr-trade-mcp
+```
+
+The skill teaches your agent *how* to use the 14 tools: when to get a quote before building a swap, when to warn about price impact, how to handle local signing vs external wallets. It's the difference between "here are 14 tools, good luck" and "here's how a DeFi agent should behave."
+
+---
+
 ## Links
 
 - **Public endpoint:** [mcp.cspr.trade/mcp](https://mcp.cspr.trade/mcp) — add it and go
 - **GitHub:** [make-software/cspr-trade-mcp](https://github.com/make-software/cspr-trade-mcp) — MIT, PRs welcome
 - **npm:** [@make-software/cspr-trade-mcp](https://www.npmjs.com/package/@make-software/cspr-trade-mcp)
+- **ClawHub skill:** [`cspr-trade-mcp`](https://clawhub.com/skills/cspr-trade-mcp) — install with `npx clawhub install cspr-trade-mcp`
 - **Agent SKILL.md:** [mcp.cspr.trade/SKILL.md](https://mcp.cspr.trade/SKILL.md) — structured instructions for AI agents
 - **CSPR.trade:** [cspr.trade](https://cspr.trade) — the DEX itself
 

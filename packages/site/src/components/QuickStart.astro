@@ -12,6 +12,8 @@ const publicConfig = `{
 
 const agentSkillUrl = `https://mcp.cspr.trade/SKILL.md`;
 
+const clawHubInstall = `npx clawhub@latest install cspr-trade-mcp`;
+
 const selfHostedConfig = `CSPR_TRADE_NETWORK=testnet CSPR_TRADE_TRANSPORT=http CSPR_TRADE_PORT=3001 \\
   npx @make-software/cspr-trade-mcp`;
 ---
@@ -40,11 +42,25 @@ const selfHostedConfig = `CSPR_TRADE_NETWORK=testnet CSPR_TRADE_TRANSPORT=http C
 
       <article class="glass-card rounded-[1.5rem] p-6">
         <div class="mb-4 flex items-center justify-between gap-4">
+          <h3 class="text-lg font-semibold text-white">OpenClaw skill</h3>
+          <a href="https://clawhub.com/skills/cspr-trade-mcp" target="_blank" rel="noreferrer" class="text-sm font-medium text-[var(--color-accent)]">ClawHub →</a>
+        </div>
+        <p class="mb-4 text-sm text-text-secondary">
+          Using <a href="https://openclaw.ai" target="_blank" rel="noreferrer" class="text-[var(--color-accent)]">OpenClaw</a>? Install the skill and your agent gets the full playbook — workflows, safety checks, signing flows.
+        </p>
+        <div class="code-block">
+          <CopyCodeButton code={clawHubInstall} />
+          <pre><code>{clawHubInstall}</code></pre>
+        </div>
+      </article>
+
+      <article class="glass-card rounded-[1.5rem] p-6">
+        <div class="mb-4 flex items-center justify-between gap-4">
           <h3 class="text-lg font-semibold text-white">Agent SKILL.md</h3>
           <a href="/SKILL.md" class="text-sm font-medium text-[var(--color-accent)]">View SKILL.md →</a>
         </div>
         <p class="mb-4 text-sm text-text-secondary">
-          Point your AI agent at the SKILL.md for complete workflow instructions — intents, safety checks, signing flows, and error handling.
+          Point any AI agent at the SKILL.md for complete workflow instructions — intents, safety checks, signing flows, and error handling.
         </p>
         <div class="code-block">
           <CopyCodeButton code={agentSkillUrl} />

@@ -36,6 +36,16 @@ That's it. Your agent now has access to 14 tools for market data, swaps, liquidi
 
 **Non-custodial by design.** The MCP server never handles private keys. Transactions are built remotely and signed locally.
 
+## OpenClaw Skill
+
+Using [OpenClaw](https://openclaw.ai)? Install the agent skill from [ClawHub](https://clawhub.com):
+
+```bash
+npx clawhub@latest install cspr-trade-mcp
+```
+
+The skill teaches your agent the full workflow — intent classification, quote-before-swap patterns, price impact warnings, local signing flows, and error recovery. Works with any OpenClaw-compatible agent.
+
 ## Self-Hosting
 
 Want testnet access or a private instance? Install the npm packages:

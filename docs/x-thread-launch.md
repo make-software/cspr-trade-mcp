@@ -42,10 +42,19 @@ Point at testnet with CSPR_TRADE_NETWORK=testnet
 Full docs + self-hosting guide: mcp.cspr.trade/docs
 
 ## Tweet 5
+Using @OpenClawAI? One command:
+
+npx clawhub install cspr-trade-mcp
+
+Your agent gets the full playbook — when to quote, when to warn on slippage, how to sign locally. Not just tools — behavior.
+
+clawhub.com/skills/cspr-trade-mcp
+
+## Tweet 6
 Open source. MIT license.
 
 github.com/make-software/cspr-trade-mcp
 
-Building an agent that needs Casper DeFi access? Pull the Agent SKILL.md — structured instructions for every tool.
+Building an agent that needs Casper DeFi access? Connect the endpoint, install the skill, and go.
 
 Happy to help → drop a reply or open an issue 🔧

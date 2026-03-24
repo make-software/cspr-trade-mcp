@@ -46,9 +46,17 @@ Add to `.cursor/mcp.json`:
 }
 ```
 
-### OpenClaw
+### OpenClaw / AI Agent Frameworks
 
-Add to your skill config or connect via the `clawfetch` skill pointing at the MCP endpoint.
+Point your agent at the SKILL.md for automatic setup:
+
+```
+https://mcp.cspr.trade/SKILL.md
+```
+
+The SKILL.md contains complete workflow instructions — intent classification, step-by-step signing flows, safety checks, and error handling. Your agent reads it and knows how to use all 14 tools.
+
+There's also an [`llms.txt`](https://mcp.cspr.trade/llms.txt) with the full tool reference for LLM context.
 
 ### Any MCP Client
 

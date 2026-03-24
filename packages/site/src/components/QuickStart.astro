@@ -10,6 +10,8 @@ const publicConfig = `{
   }
 }`;
 
+const agentSkillUrl = `https://mcp.cspr.trade/SKILL.md`;
+
 const selfHostedConfig = `CSPR_TRADE_NETWORK=testnet CSPR_TRADE_TRANSPORT=http CSPR_TRADE_PORT=3001 \\
   npx @make-software/cspr-trade-mcp`;
 ---
@@ -36,6 +38,22 @@ const selfHostedConfig = `CSPR_TRADE_NETWORK=testnet CSPR_TRADE_TRANSPORT=http C
         </div>
       </article>
 
+      <article class="glass-card rounded-[1.5rem] p-6">
+        <div class="mb-4 flex items-center justify-between gap-4">
+          <h3 class="text-lg font-semibold text-white">Agent SKILL.md</h3>
+          <a href="/SKILL.md" class="text-sm font-medium text-[var(--color-accent)]">View SKILL.md →</a>
+        </div>
+        <p class="mb-4 text-sm text-text-secondary">
+          Point your AI agent at the SKILL.md for complete workflow instructions — intents, safety checks, signing flows, and error handling.
+        </p>
+        <div class="code-block">
+          <CopyCodeButton code={agentSkillUrl} />
+          <pre><code>{agentSkillUrl}</code></pre>
+        </div>
+      </article>
+    </div>
+
+    <div class="mt-4 grid gap-4 xl:grid-cols-1">
       <article class="glass-card rounded-[1.5rem] p-6">
         <div class="mb-4 flex items-center justify-between gap-4">
           <h3 class="text-lg font-semibold text-white">Self-hosted (testnet / private)</h3>

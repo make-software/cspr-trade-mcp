@@ -1,0 +1,17 @@
+FROM node:20-slim
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+COPY packages/mcp/package.json packages/mcp/
+COPY packages/sdk/package.json packages/sdk/
+
+RUN npm ci --ignore-scripts
+
+COPY . .
+RUN npm run build
+
+ENV CSPR_TRADE_NETWORK=mainnet
+EXPOSE 3000
+
+CMD ["node", "packages/mcp/dist/http.js"]

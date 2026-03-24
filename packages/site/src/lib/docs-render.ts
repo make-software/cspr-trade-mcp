@@ -1,13 +1,13 @@
 import { marked } from 'marked';
-import { createHighlighter, type BundledHighlighter } from 'shiki';
+import { createHighlighter } from 'shiki';
 import { slugify } from '../content/docs';
 
 const FALLBACK_LANGUAGE = 'text';
 const SHIKI_THEME = 'github-dark-default';
 const SHIKI_LANGUAGES = ['bash', 'json', 'javascript', 'markdown', 'md', 'text', 'ts', 'typescript', 'yaml'] as const;
 
-let highlighterPromise: Promise<BundledHighlighter> | undefined;
-let highlighter: BundledHighlighter | undefined;
+let highlighterPromise: ReturnType<typeof createHighlighter> | undefined;
+let highlighter: Awaited<ReturnType<typeof createHighlighter>> | undefined;
 
 function escapeHtml(value: string): string {
   return value
@@ -49,7 +49,7 @@ function withCopyButton(codeHtml: string, rawCode: string): string {
   ].join('\n');
 }
 
-async function getHighlighter(): Promise<BundledHighlighter> {
+async function getHighlighter(): Promise<Awaited<ReturnType<typeof createHighlighter>>> {
   if (highlighter) return highlighter;
   highlighterPromise ??= createHighlighter({
     themes: [SHIKI_THEME],

@@ -1,0 +1,30 @@
+---
+import type { HeadingLink } from '../content/docs';
+
+interface Props {
+  headings: HeadingLink[];
+}
+
+const { headings } = Astro.props;
+---
+
+{headings.length > 0 && (
+  <aside class="hidden xl:block">
+    <div class="glass-card sticky top-24 rounded-[1.5rem] p-4">
+      <p class="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-white/50">On this page</p>
+      <nav class="space-y-2">
+        {headings.map((heading) => (
+          <a
+            href={`#${heading.slug}`}
+            class:list={[
+              'block text-sm transition hover:text-white',
+              heading.depth === 3 ? 'pl-4 text-text-muted' : 'text-text-secondary',
+            ]}
+          >
+            {heading.text}
+          </a>
+        ))}
+      </nav>
+    </div>
+  </aside>
+)}

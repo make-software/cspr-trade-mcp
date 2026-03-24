@@ -1,0 +1,24 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import { DOC_PAGES, loadDoc } from '../../content/docs';
+import { marked } from 'marked';
+
+export async function getStaticPaths() {
+  return Object.entries(DOC_PAGES).map(([slug]) => ({ params: { slug } }));
+}
+
+const slug = Astro.params.slug;
+if (!slug || !(slug in DOC_PAGES)) {
+  throw new Error(`Unknown docs slug: ${slug}`);
+}
+
+const doc = loadDoc(slug as keyof typeof DOC_PAGES);
+const html = await marked.parse(doc.content, {
+  gfm: true,
+  breaks: false,
+});
+---
+
+<DocsLayout title={doc.title} description={doc.description} headings={doc.headings}>
+  <Fragment set:html={html} />
+</DocsLayout>

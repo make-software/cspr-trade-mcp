@@ -1,13 +1,13 @@
 import { marked } from 'marked';
-import { createHighlighter, type HighlighterGeneric } from 'shiki';
+import { createHighlighter, type BundledHighlighter } from 'shiki';
 import { slugify } from '../content/docs';
 
 const FALLBACK_LANGUAGE = 'text';
 const SHIKI_THEME = 'github-dark-default';
 const SHIKI_LANGUAGES = ['bash', 'json', 'javascript', 'markdown', 'md', 'text', 'ts', 'typescript', 'yaml'] as const;
 
-let highlighterPromise: Promise<HighlighterGeneric<any, any>> | undefined;
-let highlighter: HighlighterGeneric<any, any> | undefined;
+let highlighterPromise: Promise<BundledHighlighter> | undefined;
+let highlighter: BundledHighlighter | undefined;
 
 function escapeHtml(value: string): string {
   return value
@@ -49,7 +49,7 @@ function withCopyButton(codeHtml: string, rawCode: string): string {
   ].join('\n');
 }
 
-async function getHighlighter(): Promise<HighlighterGeneric<any, any>> {
+async function getHighlighter(): Promise<BundledHighlighter> {
   if (highlighter) return highlighter;
   highlighterPromise ??= createHighlighter({
     themes: [SHIKI_THEME],
@@ -80,11 +80,9 @@ export async function renderMarkdown(markdown: string): Promise<string> {
     return `${withCopyButton(highlighted, text)}\n`;
   };
 
-  marked.setOptions({
+  return marked.parse(markdown, {
     gfm: true,
     breaks: false,
     renderer,
   });
-
-  return marked.parse(markdown);
 }

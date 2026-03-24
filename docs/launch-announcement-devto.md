@@ -102,11 +102,13 @@ No API key. No auth. No accounts. Just add the config and your agent can trade o
 - `build_add_liquidity` — add to a liquidity pool
 - `build_remove_liquidity` — withdraw from a pool
 
-**Execute (requires local signing):**
-- `sign_deploy` — sign with a local key (signer mode)
-- `submit_transaction` — broadcast the signed deploy
+**Sign locally:**
+- `sign_deploy` — sign with a local key (signer mode only)
 
-The key insight: your agent can freely explore market data and build transactions. But the moment it needs to move funds, it hits a local signing step that you control.
+**Submit (back to remote server):**
+- `submit_transaction` — broadcast the signed deploy to the Casper network
+
+The key insight: your agent can freely explore market data and build transactions on the remote server. When it needs to sign, it crosses to the local signer — then the signed transaction goes *back* to the remote server for submission. Keys never leave your machine.
 
 ---
 
@@ -138,13 +140,13 @@ Here's what actually happens when you tell Claude "Swap 1000 CSPR for WETH":
 ← { signedDeploy: { ... } }
 ```
 
-**Step 4 — Submit** *(local signer)*
+**Step 4 — Submit** *(remote server)*
 ```
 → submit_transaction(signed_deploy_json: "...")
 ← { deployHash: "a1b2c3...", status: "submitted" }
 ```
 
-Notice the boundary: Steps 1-2 hit the remote server. Steps 3-4 run on the local signer. The remote server doesn't even register signing tools — it physically cannot touch your keys. Your agent crosses the boundary automatically; MCP clients route each tool call to the right server.
+Notice the boundary: Steps 1-2 hit the remote server, Step 3 runs on the local signer, and Step 4 goes back to the remote server to submit. The signed transaction crosses back — but the private key never does. Your agent routes each tool call to the right server automatically.
 
 ---
 

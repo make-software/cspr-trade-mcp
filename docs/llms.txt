@@ -8,7 +8,7 @@ CSPR.trade is an automated market maker (AMM) DEX built on the Casper blockchain
 
 ## MCP Server
 
-The `@cspr-trade/mcp` server exposes 14 tools over the Model Context Protocol (MCP). It supports stdio transport (local) and HTTP Streamable transport (remote), and wraps the `@cspr-trade/sdk` TypeScript SDK.
+The `@make-software/cspr-trade-mcp` server exposes 14 tools over the Model Context Protocol (MCP). It supports stdio transport (local) and HTTP Streamable transport (remote), and wraps the `@make-software/cspr-trade-mcp-sdk` TypeScript SDK.
 
 ### Configuration
 

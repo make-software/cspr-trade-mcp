@@ -8,26 +8,13 @@ import QuickStart from '../components/QuickStart.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
-<BaseLayout title="CSPR.trade MCP" description="AI agent integration for CSPR.trade DEX on Casper Network">
+<BaseLayout title="CSPR.trade MCP — Connect AI Agents to Casper DeFi" description="Connect your AI agent to CSPR.trade DEX on the Casper Network. One endpoint, 14 MCP tools, non-custodial.">
   <Navbar />
   <main>
     <Hero />
-    <Architecture />
     <FeatureCards />
     <QuickStart />
-
-    <section class="py-12 sm:py-16">
-      <div class="container-shell">
-        <div class="glass-card rounded-[1.75rem] p-6 sm:p-8">
-          <p class="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-[var(--color-accent)]">Public endpoint</p>
-          <h2 class="text-2xl font-bold text-white sm:text-3xl">Mainnet endpoint is live</h2>
-          <p class="mt-4 text-base leading-7 text-text-secondary">
-            MCP: <code>https://mcp.cspr.trade/mcp</code><br />
-            Health: <code>https://mcp.cspr.trade/health</code>
-          </p>
-        </div>
-      </div>
-    </section>
+    <Architecture />
   </main>
   <Footer />
 </BaseLayout>

@@ -1,4 +1,4 @@
-# @cspr-trade/mcp
+# @make-software/cspr-trade-mcp
 
 MCP (Model Context Protocol) server for [CSPR.trade](https://cspr.trade), a Uniswap V2 DEX on the Casper Network. Connects AI agents and LLMs to on-chain DeFi — market data, swaps, liquidity, and local transaction signing.
 
@@ -7,7 +7,7 @@ Supports **stdio** (local, e.g. Claude Code) and **HTTP** (remote, Streamable HT
 ## Installation
 
 ```bash
-npm install @cspr-trade/mcp
+npm install @make-software/cspr-trade-mcp
 ```
 
 ## Usage
@@ -21,7 +21,7 @@ Add to `.claude.json`:
   "mcpServers": {
     "cspr-trade": {
       "command": "npx",
-      "args": ["@cspr-trade/mcp"],
+      "args": ["@make-software/cspr-trade-mcp"],
       "env": { "CSPR_TRADE_NETWORK": "testnet" }
     }
   }
@@ -32,7 +32,7 @@ Add to `.claude.json`:
 
 ```bash
 CSPR_TRADE_NETWORK=testnet CSPR_TRADE_TRANSPORT=http CSPR_TRADE_PORT=3001 \
-  npx @cspr-trade/mcp
+  npx @make-software/cspr-trade-mcp
 ```
 
 Point any MCP client at `http://your-host:3001/mcp`.
@@ -69,7 +69,7 @@ A separate, local-only MCP instance that signs deploys without exposing private 
     },
     "cspr-signer": {
       "command": "npx",
-      "args": ["@cspr-trade/mcp", "--signer"],
+      "args": ["@make-software/cspr-trade-mcp", "--signer"],
       "env": { "CSPR_TRADE_KEY_PATH": "~/.casper/secret_key.pem" }
     }
   }

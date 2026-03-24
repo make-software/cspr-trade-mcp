@@ -12,9 +12,11 @@ interface Props {
 const { currentPath } = Astro.props;
 
 export const navItems: NavItem[] = [
-  { href: '/docs/mcp', label: 'MCP Server' },
-  { href: '/docs/sdk', label: 'SDK' },
+  { href: '/docs/getting-started', label: 'Getting Started' },
   { href: '/docs/agent', label: 'Agent Guide' },
+  { href: '/docs/self-hosting', label: 'Self-Hosting' },
+  { href: '/docs/sdk', label: 'SDK Reference' },
+  { href: '/docs/mcp', label: 'MCP Server Reference' },
 ];
 
 export const externalItems: NavItem[] = [

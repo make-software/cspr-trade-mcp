@@ -14,8 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Full SDK and MCP implementation merged into `master` from `feat/sdk-and-mcp`
 
 ### Features included in initial master
-- TypeScript SDK (`@cspr-trade/sdk`) — market data, quotes, transaction building
-- MCP server (`@cspr-trade/mcp`) — AI agent tools for CSPR.trade DEX
+- TypeScript SDK (`@make-software/cspr-trade-mcp-sdk`) — market data, quotes, transaction building
+- MCP server (`@make-software/cspr-trade-mcp`) — AI agent tools for CSPR.trade DEX
 - Local proxy WASM transaction building with unified RPC submission
 - Integration tests for SDK and MCP
 - Claude Code SKILL.md for guided DEX interactions

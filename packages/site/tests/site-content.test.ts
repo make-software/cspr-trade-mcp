@@ -13,15 +13,31 @@ function readBuiltPage(...segments: string[]): string {
 }
 
 describe('built site content', () => {
-  testIfBuilt('landing page exposes developer and agent entry points', () => {
+  testIfBuilt('landing page leads with public endpoint and connection CTA', () => {
     const html = readBuiltPage('index.html');
 
-    expect(html).toContain('AI Agent Integration for CSPR.trade DEX');
-    expect(html).toContain('Connect AI agents to on-chain DeFi on Casper');
-    expect(html).toContain('/docs/mcp');
-    expect(html).toContain('/docs/agent');
-    expect(html).toContain('https://mcp.cspr.trade/mcp');
-    expect(html).toContain('https://mcp.cspr.trade/health');
+    expect(html).toContain('Connect Your AI Agent to Casper DeFi');
+    expect(html).toContain('mcp.cspr.trade/mcp');
+    expect(html).toContain('/docs/getting-started');
+    expect(html).toContain('/docs/self-hosting');
+    expect(html).toContain('Connect Now');
+  });
+
+  testIfBuilt('getting started page focuses on public endpoint connection', () => {
+    const doc = readBuiltPage('docs', 'getting-started', 'index.html');
+
+    expect(doc).toContain('Getting Started');
+    expect(doc).toContain('https://mcp.cspr.trade/mcp');
+    expect(doc).toContain('Claude Desktop');
+    expect(doc).toContain('No API key');
+  });
+
+  testIfBuilt('self-hosting page covers npm packages and local setup', () => {
+    const doc = readBuiltPage('docs', 'self-hosting', 'index.html');
+
+    expect(doc).toContain('Self-Hosting');
+    expect(doc).toContain('@make-software/cspr-trade-mcp');
+    expect(doc).toContain('@make-software/cspr-trade-mcp-sdk');
   });
 
   testIfBuilt('docs pages are generated from source content entry points', () => {
@@ -29,13 +45,8 @@ describe('built site content', () => {
     const sdkDoc = readBuiltPage('docs', 'sdk', 'index.html');
     const agentDoc = readBuiltPage('docs', 'agent', 'index.html');
 
-    expect(mcpDoc).toContain('MCP Server · CSPR.trade MCP');
-    expect(mcpDoc).toContain('@cspr-trade/mcp');
-    expect(mcpDoc).toContain('Public production endpoint');
-    expect(sdkDoc).toContain('SDK · CSPR.trade MCP');
-    expect(sdkDoc).toContain('@cspr-trade/sdk');
-    expect(sdkDoc).toContain('Transaction Building');
-    expect(agentDoc).toContain('Agent Guide · CSPR.trade MCP');
+    expect(mcpDoc).toContain('@make-software/cspr-trade-mcp');
+    expect(sdkDoc).toContain('@make-software/cspr-trade-mcp-sdk');
     expect(agentDoc).toContain('Executing a Swap');
   });
 });

@@ -38,21 +38,31 @@ export interface LoadedDoc {
   headings: HeadingLink[];
 }
 
-export const DOC_PAGES: Record<'mcp' | 'sdk' | 'agent', DocPageConfig> = {
-  mcp: {
-    title: 'MCP Server',
-    description: 'Model Context Protocol server docs for CSPR.trade.',
-    sourcePath: 'packages/mcp/README.md',
-  },
-  sdk: {
-    title: 'SDK',
-    description: 'TypeScript SDK docs for CSPR.trade.',
-    sourcePath: 'packages/sdk/README.md',
+export const DOC_PAGES: Record<'getting-started' | 'agent' | 'self-hosting' | 'sdk' | 'mcp', DocPageConfig> = {
+  'getting-started': {
+    title: 'Getting Started',
+    description: 'Connect your AI agent to the CSPR.trade public MCP endpoint in under a minute.',
+    sourcePath: 'docs/getting-started.md',
   },
   agent: {
     title: 'Agent Guide',
     description: 'Agent-facing workflow guide for using the CSPR.trade MCP tools.',
     sourcePath: 'docs/SKILL.md',
+  },
+  'self-hosting': {
+    title: 'Self-Hosting',
+    description: 'Run your own CSPR.trade MCP server using the npm packages.',
+    sourcePath: 'docs/self-hosting.md',
+  },
+  sdk: {
+    title: 'SDK Reference',
+    description: 'TypeScript SDK docs for CSPR.trade.',
+    sourcePath: 'packages/sdk/README.md',
+  },
+  mcp: {
+    title: 'MCP Server Reference',
+    description: 'Full MCP server docs — tools, env vars, signer mode.',
+    sourcePath: 'packages/mcp/README.md',
   },
 };
 

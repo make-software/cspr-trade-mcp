@@ -1,4 +1,4 @@
-# @cspr-trade/sdk
+# @make-software/cspr-trade-mcp-sdk
 
 TypeScript SDK for the [CSPR.trade](https://cspr.trade) DEX on the Casper Network. Provides market data queries, swap/liquidity transaction building, and token resolution — all through the CSPR.trade API.
 
@@ -7,13 +7,13 @@ Non-custodial: all transaction methods return unsigned transaction JSON for exte
 ## Installation
 
 ```bash
-npm install @cspr-trade/sdk
+npm install @make-software/cspr-trade-mcp-sdk
 ```
 
 ## Quick Start
 
 ```typescript
-import { CsprTradeClient } from '@cspr-trade/sdk';
+import { CsprTradeClient } from '@make-software/cspr-trade-mcp-sdk';
 
 const client = new CsprTradeClient({ network: 'testnet' });
 
@@ -227,7 +227,7 @@ Resolution order: exact symbol match -> exact name match -> contract hash match.
 ## Utility Functions
 
 ```typescript
-import { toRawAmount, toFormattedAmount } from '@cspr-trade/sdk';
+import { toRawAmount, toFormattedAmount } from '@make-software/cspr-trade-mcp-sdk';
 
 toRawAmount('100.5', 9);       // '100500000000'
 toFormattedAmount('100500000000', 9); // '100.5'

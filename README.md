@@ -2,6 +2,8 @@
 
 AI agent integration for [CSPR.trade](https://cspr.trade), the leading DEX on the Casper Network.
 
+[![CSPR[dot]trade MCP server](https://glama.ai/mcp/servers/make-software/cspr-trade-mcp/badges/card.svg)](https://glama.ai/mcp/servers/make-software/cspr-trade-mcp)
+
 **🔗 Public endpoint:** [`https://mcp.cspr.trade/mcp`](https://mcp.cspr.trade/mcp) — connect any MCP client, no setup required.
 
 **📖 Documentation:** [mcp.cspr.trade](https://mcp.cspr.trade)

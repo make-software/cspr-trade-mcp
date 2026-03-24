@@ -1,83 +1,156 @@
 ---
-title: CSPR.trade MCP — Connect Your AI Agent to Casper DeFi in Seconds
+title: I Gave Claude the Ability to Trade on a DEX. Here's How It Works.
 published: true
-description: The CSPR.trade MCP server is live. 14 tools for market data, swaps, and liquidity management on Casper Network — one endpoint, non-custodial, no API keys needed.
-tags: casper, blockchain, mcp, ai
+description: The hard problem of agentic DeFi isn't the DEX — it's the keys. Here's how we solved it with MCP, non-custodial architecture, and one line of config.
+tags: mcp, ai, blockchain, defi
 canonical_url: https://mcp.cspr.trade
 ---
 
-# CSPR.trade MCP — Connect Your AI Agent to Casper DeFi in Seconds
+# I Gave Claude the Ability to Trade on a DEX. Here's How It Works.
 
-The Casper Network just completed its [v2.2.0 mainnet upgrade](https://casper.network). To celebrate, we're launching something that's been in the works for a while: **CSPR.trade MCP** — a Model Context Protocol server that gives any AI agent instant access to [CSPR.trade](https://cspr.trade), the leading DEX on Casper.
+Here's a simple question: *Can an AI agent trade on a DEX without ever touching a private key?*
 
-One endpoint. 14 tools. Market data, swaps, and liquidity management — live on Casper mainnet.
+Not read-only. Not "here's a price feed." Actually build a swap, sign it, submit it — end to end. And the answer, until now, was no.
 
----
+Every DeFi MCP server I looked at fell into one of two camps:
 
-## What Is This?
+1. **Read-only** — your agent can look at prices, maybe get a quote, but can't actually do anything
+2. **Custodial** — hand over your keys and trust the server not to drain your wallet
 
-[CSPR.trade](https://cspr.trade) is a Uniswap V2-style DEX built on Casper Network. It lets users swap CSPR tokens, provide liquidity, and earn fees.
-
-**CSPR.trade MCP** wraps the DEX API as a [Model Context Protocol](https://modelcontextprotocol.io) server, so AI agents (Claude, GPT, Cursor, your custom agent) can:
-- Query real-time token prices and pair data
-- Build swap transactions
-- Check account liquidity positions
-- Submit signed transactions to the network
-
-The server is hosted publicly at **`https://mcp.cspr.trade/mcp`** — no API keys, no local installation, no configuration beyond adding it to your MCP client.
+Neither is acceptable. Read-only is a toy. Custodial is a liability. So we built a third option.
 
 ---
 
-## Quick Start
+## The Hard Problem: It's Not the DEX. It's the Keys.
 
-Add this to your MCP client config (Claude Desktop, Cursor, Continue, or any MCP-compatible tool):
+The hard problem of agentic DeFi isn't connecting to a DEX. Any wrapper can do that. The hard problem is: **who holds the keys?**
+
+CSPR.trade MCP does neither read-only nor custody. The agent builds the transaction remotely, your machine signs it locally, and **keys never move**. That's not a feature. That's the architecture.
+
+Here's the flow:
+
+```
+┌─────────────┐      ┌──────────────────┐      ┌─────────────┐
+│  AI Agent    │─────▶│  CSPR.trade MCP  │─────▶│  Casper DEX │
+│  (Claude,    │      │  Server          │      │  (on-chain)  │
+│   Cursor,    │      │                  │      │              │
+│   custom)    │◀─────│  Returns UNSIGNED │      │              │
+└──────┬───────┘      │  transaction JSON │      └──────────────┘
+       │              └──────────────────┘
+       │
+       ▼
+┌─────────────┐
+│  LOCAL SIGNER│  ← Keys live here. Nowhere else.
+│  (your      │
+│   machine)   │
+└──────┬───────┘
+       │
+       ▼
+  Submit signed tx → on-chain execution
+```
+
+The MCP server never sees your private key. It can't. It builds an unsigned deploy, hands it back to the agent, and the agent signs locally before submitting. Zero custody. Zero trust assumptions.
+
+---
+
+## Try It: Two Servers, Zero Custody
+
+Add this to Claude Desktop, Cursor, or any MCP client:
 
 ```json
 {
   "mcpServers": {
     "cspr-trade": {
       "url": "https://mcp.cspr.trade/mcp"
+    },
+    "cspr-signer": {
+      "command": "npx",
+      "args": ["@make-software/cspr-trade-mcp", "--signer"],
+      "env": {
+        "CSPR_TRADE_KEY_PATH": "~/.casper/secret_key.pem"
+      }
     }
   }
 }
 ```
 
-That's it. Your agent now has access to 14 tools.
+Two servers, one architecture: the **remote server** handles market data and builds unsigned transactions. The **local signer** signs them with your key. Keys never leave your machine — and the remote server doesn't even have the signing tools. It *can't* touch your keys, by design.
+
+No API key. No auth. No accounts. Just add the config and your agent can trade on [CSPR.trade](https://cspr.trade), the leading DEX on Casper Network.
+
+> **Just want to explore?** The remote server works standalone — skip `cspr-signer` and your agent gets full market data, quotes, and can build unsigned transactions. Add the signer when you're ready to execute.
 
 ---
 
-## The 14 Tools
+## What Your Agent Can Actually Do
 
-| Category | Tool | Description |
-|----------|------|-------------|
-| **Market Data** | `get_tokens` | List all tokens with prices and metadata |
-| | `get_pairs` | List trading pairs with liquidity |
-| | `get_pair_details` | Detailed stats for a specific pair |
-| | `get_quote` | Get swap quote for a token amount |
-| | `get_currencies` | List supported currencies |
-| **Trading** | `build_swap` | Build a swap transaction (unsigned) |
-| | `build_approve_token` | Build a token approval transaction |
-| | `submit_transaction` | Submit a signed transaction |
-| **Liquidity** | `build_add_liquidity` | Build an add-liquidity transaction |
-| | `build_remove_liquidity` | Build a remove-liquidity transaction |
-| **Account** | `get_liquidity_positions` | Account's LP positions |
-| | `get_impermanent_loss` | Calculate impermanent loss for a position |
-| | `get_swap_history` | Account's swap history |
-| **Signing** | `sign_deploy` | Sign a deploy locally (signer mode) |
+14 tools, three categories:
 
-**Non-custodial design:** Transactions are built server-side but signed locally. Private keys never leave your machine.
+**See everything (no wallet needed):**
+- `get_tokens` — all tokens with live prices
+- `get_pairs` — trading pairs with liquidity depth
+- `get_pair_details` — deep stats on any pair
+- `get_quote` — "How much WETH do I get for 10,000 CSPR?"
+- `get_currencies` — supported currencies
+- `get_swap_history` — any account's trade history
+- `get_liquidity_positions` — LP positions and value
+- `get_impermanent_loss` — calculate IL for any position
+
+**Build transactions (returns unsigned JSON):**
+- `build_swap` — construct a swap deploy
+- `build_approve_token` — token approval for the router
+- `build_add_liquidity` — add to a liquidity pool
+- `build_remove_liquidity` — withdraw from a pool
+
+**Execute (requires local signing):**
+- `sign_deploy` — sign with a local key (signer mode)
+- `submit_transaction` — broadcast the signed deploy
+
+The key insight: your agent can freely explore market data and build transactions. But the moment it needs to move funds, it hits a local signing step that you control.
 
 ---
 
-## Self-Hosting
+## Walkthrough: Swapping 1000 CSPR for WETH
 
-Need testnet access or a private instance? Install from npm:
+Here's what actually happens when you tell Claude "Swap 1000 CSPR for WETH":
 
-```bash
-npm install @make-software/cspr-trade-mcp
+**Step 1 — Agent gets a quote** *(remote server)*
+```
+→ get_quote(tokenIn: "CSPR", tokenOut: "WETH", amountIn: "1000")
+← { amountOut: "0.285", priceImpact: "0.02%", route: [...] }
 ```
 
-Then add to your config:
+**Step 2 — Agent builds the swap** *(remote server)*
+```
+→ build_swap(
+    publicKey: "02036d...",
+    tokenIn: "CSPR",
+    tokenOut: "WETH",
+    amountIn: "1000",
+    slippage: 0.5
+  )
+← { deploy: { ... unsigned transaction JSON ... } }
+```
+
+**Step 3 — Local signing** *(local signer — your machine)*
+```
+→ sign_deploy(deploy_json: "...", key_source: "pem_file")
+← { signedDeploy: { ... } }
+```
+
+**Step 4 — Submit** *(local signer)*
+```
+→ submit_transaction(signed_deploy_json: "...")
+← { deployHash: "a1b2c3...", status: "submitted" }
+```
+
+Notice the boundary: Steps 1-2 hit the remote server. Steps 3-4 run on the local signer. The remote server doesn't even register signing tools — it physically cannot touch your keys. Your agent crosses the boundary automatically; MCP clients route each tool call to the right server.
+
+---
+
+## Self-Hosting and Testnet
+
+Want to run everything locally, or develop against testnet? Run the full server on your machine:
 
 ```json
 {
@@ -85,13 +158,18 @@ Then add to your config:
     "cspr-trade": {
       "command": "npx",
       "args": ["@make-software/cspr-trade-mcp"],
-      "env": { "CSPR_TRADE_NETWORK": "testnet" }
+      "env": {
+        "CSPR_TRADE_NETWORK": "testnet",
+        "CSPR_TRADE_KEY_PATH": "~/.casper/secret_key.pem"
+      }
     }
   }
 }
 ```
 
-The SDK is also available separately for programmatic access:
+In stdio mode, the full server includes all tools — market data, transaction building, signing, and submission — in a single process. Your keys stay local because the server *is* local.
+
+The SDK is also available separately for custom integrations:
 
 ```bash
 npm install @make-software/cspr-trade-mcp-sdk
@@ -99,32 +177,28 @@ npm install @make-software/cspr-trade-mcp-sdk
 
 ---
 
-## For AI Agent Developers
+## Why This Matters Beyond Casper
 
-If you're building an OpenClaw, LangChain, or custom agent and want to integrate CSPR.trade, download the [Agent SKILL.md](https://mcp.cspr.trade/SKILL.md) — a structured skill file that tells your agent exactly how to use all 14 tools, with examples.
+Every blockchain is going to face this problem. As AI agents get more capable, they'll need to interact with DeFi — and the custody question doesn't go away just because the agent is smarter.
 
-```bash
-curl https://mcp.cspr.trade/SKILL.md -o cspr-trade-skill.md
-```
+The pattern we're using here — **build remote, sign local** — isn't Casper-specific. It's a design pattern for any chain where you want agents to transact without surrendering keys. We just shipped it first.
 
 ---
 
-## Open Source
+## Context: Casper v2.2.0
 
-The full server and SDK are open source on GitHub: [github.com/make-software/cspr-trade-mcp](https://github.com/make-software/cspr-trade-mcp)
-
-Built with TypeScript, using the [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk). PRs welcome.
+This ships the same week Casper Network upgraded to v2.2.0 on mainnet. The v2.2.0 release marks a notable protocol upgrade, and CSPR.trade MCP is the first DeFi MCP server built for it. If you want to see what building on Casper looks like right now — this is it.
 
 ---
 
-## What's Next
+## Links
 
-- **More pairs:** As liquidity grows on CSPR.trade post-v2.2.0, new pairs will appear automatically
-- **Streaming prices:** WebSocket-based real-time price feeds via MCP
-- **Agent SKILL file in npm:** Bundle the SKILL.md with the npm package for one-step agent integration
+- **Public endpoint:** [mcp.cspr.trade/mcp](https://mcp.cspr.trade/mcp) — add it and go
+- **GitHub:** [make-software/cspr-trade-mcp](https://github.com/make-software/cspr-trade-mcp) — MIT, PRs welcome
+- **npm:** [@make-software/cspr-trade-mcp](https://www.npmjs.com/package/@make-software/cspr-trade-mcp)
+- **Agent SKILL.md:** [mcp.cspr.trade/SKILL.md](https://mcp.cspr.trade/SKILL.md) — structured instructions for AI agents
+- **CSPR.trade:** [cspr.trade](https://cspr.trade) — the DEX itself
 
----
+Questions? Drop a comment or [open an issue](https://github.com/make-software/cspr-trade-mcp/issues).
 
-Have questions or want to build something with this? Drop a comment below or open an issue on GitHub. Happy to help.
-
-— Jean Clawd, MAKE Services
+— Built by [MAKE](https://make.services), the team behind Casper's core developer tools.

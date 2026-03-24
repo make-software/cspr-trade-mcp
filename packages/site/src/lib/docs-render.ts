@@ -44,33 +44,33 @@ function withCopyButton(codeHtml: string, rawCode: string): string {
   ].join('\n');
 }
 
-export async function renderMarkdown(markdown: string): Promise<string> {
-  const renderer = new marked.Renderer();
+const renderer = new marked.Renderer();
 
-  renderer.heading = ({ tokens, depth }) => {
-    const text = renderer.parser.parseInline(tokens);
-    const plainText = decodeHtml(text).trim();
-    const id = depth === 2 || depth === 3 ? slugify(plainText) : undefined;
-    const attrs = id ? ` id="${id}"` : '';
-    return `<h${depth}${attrs}>${text}</h${depth}>\n`;
-  };
+renderer.heading = ({ tokens, depth }) => {
+  const text = renderer.parser.parseInline(tokens);
+  const plainText = decodeHtml(text).trim();
+  const id = depth === 2 || depth === 3 ? slugify(plainText) : undefined;
+  const attrs = id ? ` id="${id}"` : '';
+  return `<h${depth}${attrs}>${text}</h${depth}>\n`;
+};
 
-  renderer.code = async ({ text, lang }) => {
-    const language = normalizeLanguage(lang);
-    const highlighted = await codeToHtml(text, {
-      lang: language,
-      theme: SHIKI_THEME,
-      defaultColor: false,
-    });
-    return `${withCopyButton(highlighted, text)}\n`;
-  };
-
-  marked.setOptions({
-    gfm: true,
-    breaks: false,
-    async: true,
-    renderer,
+renderer.code = async ({ text, lang }) => {
+  const language = normalizeLanguage(lang);
+  const highlighted = await codeToHtml(text, {
+    lang: language,
+    theme: SHIKI_THEME,
+    defaultColor: false,
   });
+  return `${withCopyButton(highlighted, text)}\n`;
+};
 
+marked.setOptions({
+  gfm: true,
+  breaks: false,
+  async: true,
+  renderer,
+});
+
+export async function renderMarkdown(markdown: string): Promise<string> {
   return marked.parse(markdown) as Promise<string>;
 }

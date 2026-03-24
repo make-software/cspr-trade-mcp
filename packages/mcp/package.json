@@ -24,5 +24,7 @@
     "tsup": "^8.0.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
-  }
+  },
+  "license": "MIT",
+  "description": "MCP server for AI agents to interact with CSPR.trade DEX on Casper Network"
 }

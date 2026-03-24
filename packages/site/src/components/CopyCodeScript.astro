@@ -1,0 +1,36 @@
+<script is:inline>
+  const BUTTON_SELECTOR = '[data-copy-code]';
+
+  const updateButtonLabel = (button, label) => {
+    const target = button.querySelector('[data-copy-label]');
+    if (target) target.textContent = label;
+  };
+
+  const copyCode = async (button) => {
+    const code = button.getAttribute('data-copy-code') ?? '';
+    try {
+      await navigator.clipboard.writeText(code);
+      updateButtonLabel(button, 'Copied');
+      button.dataset.copied = 'true';
+      window.setTimeout(() => {
+        updateButtonLabel(button, 'Copy');
+        delete button.dataset.copied;
+      }, 1800);
+    } catch {
+      updateButtonLabel(button, 'Press ⌘/Ctrl+C');
+      button.dataset.copied = 'true';
+      window.setTimeout(() => {
+        updateButtonLabel(button, 'Copy');
+        delete button.dataset.copied;
+      }, 1800);
+    }
+  };
+
+  const handleClick = (event) => {
+    const button = event.target instanceof Element ? event.target.closest(BUTTON_SELECTOR) : null;
+    if (!(button instanceof HTMLButtonElement)) return;
+    copyCode(button);
+  };
+
+  document.addEventListener('click', handleClick);
+</script>

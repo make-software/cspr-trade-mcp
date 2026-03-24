@@ -1,0 +1,24 @@
+{
+  "name": "@cspr-trade/site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "astro check"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.2.2",
+    "astro": "^5.14.0",
+    "marked": "^17.0.5",
+    "shiki": "^3.23.0",
+    "tailwindcss": "^4.2.2"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.8",
+    "vitest": "^3.0.0"
+  }
+}

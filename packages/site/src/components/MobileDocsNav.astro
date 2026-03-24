@@ -1,0 +1,52 @@
+---
+interface NavItem {
+  href: string;
+  label: string;
+}
+
+interface Props {
+  currentPath: string;
+  navItems: NavItem[];
+  externalItems: Array<NavItem & { external?: boolean }>;
+}
+
+const { currentPath, navItems, externalItems } = Astro.props;
+const activeItem = navItems.find((item) => item.href === currentPath) ?? navItems[0];
+---
+
+<details class="glass-card lg:hidden" data-mobile-docs-nav>
+  <summary class="flex cursor-pointer list-none items-center justify-between gap-4 rounded-[1.5rem] px-4 py-3 text-sm font-medium text-white marker:content-none">
+    <span>Docs: {activeItem.label}</span>
+    <span class="text-xs uppercase tracking-[0.24em] text-white/50">Menu</span>
+  </summary>
+  <div class="border-t border-white/8 px-4 py-3">
+    <nav class="space-y-1">
+      {navItems.map((item) => {
+        const active = currentPath === item.href;
+        return (
+          <a
+            href={item.href}
+            class:list={[
+              'block rounded-xl border px-4 py-3 text-sm font-medium transition',
+              active
+                ? 'border-[var(--color-accent)]/50 bg-[rgba(255,0,18,0.08)] text-white'
+                : 'border-transparent text-text-secondary hover:border-white/10 hover:bg-white/5 hover:text-white',
+            ]}
+          >
+            {item.label}
+          </a>
+        );
+      })}
+    </nav>
+
+    <div class="my-4 border-t border-white/8"></div>
+
+    <div class="space-y-1">
+      {externalItems.map((item) => (
+        <a href={item.href} target="_blank" rel="noreferrer" class="block rounded-xl border border-transparent px-4 py-3 text-sm font-medium text-text-secondary transition hover:border-white/10 hover:bg-white/5 hover:text-white">
+          {item.label}
+        </a>
+      ))}
+    </div>
+  </div>
+</details>

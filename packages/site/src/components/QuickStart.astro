@@ -1,0 +1,51 @@
+---
+import CopyCodeButton from './CopyCodeButton.astro';
+import CopyCodeScript from './CopyCodeScript.astro';
+
+const stdioConfig = `{
+  "mcpServers": {
+    "cspr-trade": {
+      "command": "node",
+      "args": ["/path/to/cspr-trade-mcp/packages/mcp/dist/index.js"],
+      "env": { "CSPR_TRADE_NETWORK": "testnet" }
+    }
+  }
+}`;
+
+const httpConfig = `CSPR_TRADE_NETWORK=testnet CSPR_TRADE_TRANSPORT=http CSPR_TRADE_PORT=3001 \
+  node packages/mcp/dist/index.js`;
+---
+
+<section class="py-12 sm:py-16">
+  <div class="container-shell">
+    <div class="mb-8 max-w-2xl">
+      <p class="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-[var(--color-accent)]">Quick start</p>
+      <h2 class="text-3xl font-bold text-white sm:text-4xl">Start local or remote</h2>
+    </div>
+
+    <div class="grid gap-4 xl:grid-cols-2">
+      <article class="glass-card rounded-[1.5rem] p-6">
+        <div class="mb-4 flex items-center justify-between gap-4">
+          <h3 class="text-lg font-semibold text-white">Claude Code (stdio)</h3>
+          <a href="/docs/mcp" class="text-sm font-medium text-[var(--color-accent)]">Open docs →</a>
+        </div>
+        <div class="code-block">
+          <CopyCodeButton code={stdioConfig} />
+          <pre><code>{stdioConfig}</code></pre>
+        </div>
+      </article>
+
+      <article class="glass-card rounded-[1.5rem] p-6">
+        <div class="mb-4 flex items-center justify-between gap-4">
+          <h3 class="text-lg font-semibold text-white">HTTP (remote)</h3>
+          <a href="/docs/agent" class="text-sm font-medium text-[var(--color-accent)]">Agent guide →</a>
+        </div>
+        <div class="code-block">
+          <CopyCodeButton code={httpConfig} />
+          <pre><code>{httpConfig}</code></pre>
+        </div>
+      </article>
+    </div>
+  </div>
+  <CopyCodeScript />
+</section>

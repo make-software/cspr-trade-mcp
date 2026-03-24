@@ -1,4 +1,7 @@
 ---
+import CopyCodeButton from './CopyCodeButton.astro';
+import CopyCodeScript from './CopyCodeScript.astro';
+
 const stdioConfig = `{
   "mcpServers": {
     "cspr-trade": {
@@ -9,7 +12,7 @@ const stdioConfig = `{
   }
 }`;
 
-const httpConfig = `CSPR_TRADE_NETWORK=testnet CSPR_TRADE_TRANSPORT=http CSPR_TRADE_PORT=3001 \\
+const httpConfig = `CSPR_TRADE_NETWORK=testnet CSPR_TRADE_TRANSPORT=http CSPR_TRADE_PORT=3001 \
   node packages/mcp/dist/index.js`;
 ---
 
@@ -26,7 +29,10 @@ const httpConfig = `CSPR_TRADE_NETWORK=testnet CSPR_TRADE_TRANSPORT=http CSPR_TR
           <h3 class="text-lg font-semibold text-white">Claude Code (stdio)</h3>
           <a href="/docs/mcp" class="text-sm font-medium text-[var(--color-accent)]">Open docs →</a>
         </div>
-        <pre><code>{stdioConfig}</code></pre>
+        <div class="code-block">
+          <CopyCodeButton code={stdioConfig} />
+          <pre><code>{stdioConfig}</code></pre>
+        </div>
       </article>
 
       <article class="glass-card rounded-[1.5rem] p-6">
@@ -34,8 +40,12 @@ const httpConfig = `CSPR_TRADE_NETWORK=testnet CSPR_TRADE_TRANSPORT=http CSPR_TR
           <h3 class="text-lg font-semibold text-white">HTTP (remote)</h3>
           <a href="/docs/agent" class="text-sm font-medium text-[var(--color-accent)]">Agent guide →</a>
         </div>
-        <pre><code>{httpConfig}</code></pre>
+        <div class="code-block">
+          <CopyCodeButton code={httpConfig} />
+          <pre><code>{httpConfig}</code></pre>
+        </div>
       </article>
     </div>
   </div>
+  <CopyCodeScript />
 </section>

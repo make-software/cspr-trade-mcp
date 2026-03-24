@@ -1,7 +1,7 @@
 ---
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import { DOC_PAGES, loadDoc } from '../../content/docs';
-import { marked } from 'marked';
+import { renderMarkdown } from '../../lib/docs-render';
 
 export async function getStaticPaths() {
   return Object.entries(DOC_PAGES).map(([slug]) => ({ params: { slug } }));
@@ -13,10 +13,7 @@ if (!slug || !(slug in DOC_PAGES)) {
 }
 
 const doc = loadDoc(slug as keyof typeof DOC_PAGES);
-const html = await marked.parse(doc.content, {
-  gfm: true,
-  breaks: false,
-});
+const html = await renderMarkdown(doc.content);
 ---
 
 <DocsLayout title={doc.title} description={doc.description} headings={doc.headings}>

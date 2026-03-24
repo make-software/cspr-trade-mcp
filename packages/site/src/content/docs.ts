@@ -1,9 +1,23 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const repoRoot = fs.existsSync(path.resolve(process.cwd(), 'packages/mcp/README.md'))
-  ? process.cwd()
-  : path.resolve(process.cwd(), '..', '..');
+function findRepoRoot(startDir: string): string {
+  let current = startDir;
+
+  while (true) {
+    if (fs.existsSync(path.join(current, 'package.json')) && fs.existsSync(path.join(current, 'packages', 'mcp', 'README.md'))) {
+      return current;
+    }
+
+    const parent = path.dirname(current);
+    if (parent === current) {
+      throw new Error(`Could not locate repository root from ${startDir}`);
+    }
+    current = parent;
+  }
+}
+
+const repoRoot = findRepoRoot(process.cwd());
 
 export interface DocPageConfig {
   title: string;

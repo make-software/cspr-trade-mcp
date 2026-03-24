@@ -180,3 +180,59 @@ code {
   background: var(--color-border-hover);
   border-radius: 999px;
 }
+
+
+.code-block {
+  position: relative;
+}
+
+.copy-code-button {
+  position: absolute;
+  top: 0.875rem;
+  right: 0.875rem;
+  z-index: 1;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(10, 10, 15, 0.88);
+  color: var(--color-text-secondary);
+  border-radius: 999px;
+  padding: 0.375rem 0.75rem;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+}
+
+.copy-code-button:hover,
+.copy-code-button[data-copied='true'] {
+  color: var(--color-text);
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+pre {
+  position: relative;
+}
+
+.code-block pre {
+  margin: 0;
+  padding-top: 3.25rem;
+}
+
+.code-block .shiki {
+  overflow-x: auto;
+}
+
+.code-block .shiki code {
+  display: grid;
+  min-width: max-content;
+}
+
+.code-block .shiki .line {
+  min-height: 1.5rem;
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}

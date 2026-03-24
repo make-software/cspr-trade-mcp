@@ -1,8 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, test } from 'vitest';
 
-const siteDistDir = path.resolve(import.meta.dirname, '..', 'dist');
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
+const siteDistDir = path.resolve(currentDir, '..', 'dist');
 const hasBuiltSite = fs.existsSync(siteDistDir);
 const testIfBuilt = hasBuiltSite ? test : test.skip;
 

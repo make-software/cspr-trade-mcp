@@ -6,6 +6,9 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
   output: 'static',
+  redirects: {
+    '/docs': '/docs/getting-started',
+  },
   build: {
     format: 'directory',
   },

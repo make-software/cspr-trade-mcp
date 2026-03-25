@@ -13,6 +13,13 @@ function readBuiltPage(...segments: string[]): string {
 }
 
 describe('built site content', () => {
+  testIfBuilt('docs index redirects to getting started', () => {
+    const docIndex = readBuiltPage('docs', 'index.html');
+
+    expect(docIndex).toContain('url=/docs/getting-started');
+    expect(docIndex).toContain('href="/docs/getting-started"');
+  });
+
   testIfBuilt('landing page leads with public endpoint and connection CTA', () => {
     const html = readBuiltPage('index.html');
 

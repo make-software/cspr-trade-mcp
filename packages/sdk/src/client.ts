@@ -24,6 +24,16 @@ import {
   type NetworkConfig,
 } from './config.js';
 import { toRawAmount, toFormattedAmount, calculateMinWithSlippage, calculateMaxWithSlippage } from './utils/amounts.js';
+import {
+  estimatePriceImpact as estimatePriceImpactHelper,
+  estimateSlippage as estimateSlippageHelper,
+  computeOptimalLiquidityAmounts as computeOptimalHelper,
+  analyzeTrade as analyzeTradeHelper,
+  type PriceImpactEstimate,
+  type SlippageEstimate,
+  type OptimalLiquidityResult,
+  type TradeAnalysis,
+} from './analysis/trade-analysis.js';
 import { buildProxyWasmArgs } from './transactions/proxy-wasm.js';
 import { getSwapEntryPoint, buildSwapInnerArgs, getSwapAttachedValue } from './transactions/swap.js';
 import { buildAddLiquidityInnerArgs, buildRemoveLiquidityInnerArgs } from './transactions/liquidity.js';
@@ -147,6 +157,149 @@ export class CsprTradeClient {
 
   async getCurrencies(): Promise<Currency[]> {
     return this.currenciesApi.getCurrencies();
+  }
+
+  // --- Trade Analysis ---
+
+  /**
+   * Estimate price impact for a swap without building a transaction.
+   * Fetches pool reserves automatically from the pair.
+   */
+  async estimatePriceImpact(params: {
+    tokenIn: string;
+    tokenOut: string;
+    amount: string;
+  }): Promise<PriceImpactEstimate> {
+    const tokenIn = await this.tokenResolver.resolve(params.tokenIn);
+    const tokenOut = await this.tokenResolver.resolve(params.tokenOut);
+    const pair = await this.findPairForTokens(tokenIn.packageHash, tokenOut.packageHash);
+    if (!pair) throw new Error(`No liquidity pool found for ${tokenIn.symbol}/${tokenOut.symbol}`);
+
+    const [reserveIn, reserveOut, decimalsIn, decimalsOut] = this.orientReserves(
+      pair, tokenIn.packageHash, tokenIn.decimals, tokenOut.decimals,
+    );
+
+    return estimatePriceImpactHelper(reserveIn, reserveOut, params.amount, decimalsIn, decimalsOut);
+  }
+
+  /**
+   * Estimate slippage for a swap — expected output vs. spot price.
+   */
+  async estimateSlippage(params: {
+    tokenIn: string;
+    tokenOut: string;
+    amount: string;
+    slippageToleranceBps?: number;
+  }): Promise<SlippageEstimate> {
+    const tokenIn = await this.tokenResolver.resolve(params.tokenIn);
+    const tokenOut = await this.tokenResolver.resolve(params.tokenOut);
+    const pair = await this.findPairForTokens(tokenIn.packageHash, tokenOut.packageHash);
+    if (!pair) throw new Error(`No liquidity pool found for ${tokenIn.symbol}/${tokenOut.symbol}`);
+
+    const [reserveIn, reserveOut, decimalsIn, decimalsOut] = this.orientReserves(
+      pair, tokenIn.packageHash, tokenIn.decimals, tokenOut.decimals,
+    );
+
+    return estimateSlippageHelper(
+      reserveIn, reserveOut, params.amount, decimalsIn, decimalsOut,
+      params.slippageToleranceBps ?? DEFAULT_SLIPPAGE_BPS,
+    );
+  }
+
+  /**
+   * Compute optimal token B amount for adding liquidity given a token A amount.
+   */
+  async getOptimalLiquidityAmounts(params: {
+    tokenA: string;
+    tokenB: string;
+    amountA: string;
+  }): Promise<OptimalLiquidityResult> {
+    const tokenA = await this.tokenResolver.resolve(params.tokenA);
+    const tokenB = await this.tokenResolver.resolve(params.tokenB);
+    const pair = await this.findPairForTokens(tokenA.packageHash, tokenB.packageHash);
+    if (!pair) {
+      return {
+        amountA: params.amountA,
+        amountB: '0',
+        estimatedPoolSharePct: '100.00',
+        isNewPool: true,
+      };
+    }
+
+    const [reserveA, reserveB] = this.orientReserves(
+      pair, tokenA.packageHash, tokenA.decimals, tokenB.decimals,
+    );
+
+    // Fetch LP supply from positions API (approximate from pair data)
+    const positions = await this.liquidityApi.getPositions('');
+    const matchingPos = positions.find(
+      p => p.pair_contract_package_hash === pair.contractPackageHash,
+    );
+    const lpSupply = matchingPos?.pair_lp_tokens_total_supply ?? '1000000000';
+
+    return computeOptimalHelper(
+      reserveA, reserveB, params.amountA,
+      tokenA.decimals, tokenB.decimals, lpSupply,
+    );
+  }
+
+  /**
+   * Comprehensive trade analysis combining price impact, slippage estimation, and recommendation.
+   */
+  async analyzeTrade(params: {
+    tokenIn: string;
+    tokenOut: string;
+    amount: string;
+    slippageToleranceBps?: number;
+  }): Promise<TradeAnalysis> {
+    const tokenIn = await this.tokenResolver.resolve(params.tokenIn);
+    const tokenOut = await this.tokenResolver.resolve(params.tokenOut);
+    const pair = await this.findPairForTokens(tokenIn.packageHash, tokenOut.packageHash);
+    if (!pair) throw new Error(`No liquidity pool found for ${tokenIn.symbol}/${tokenOut.symbol}`);
+
+    const [reserveIn, reserveOut, decimalsIn, decimalsOut] = this.orientReserves(
+      pair, tokenIn.packageHash, tokenIn.decimals, tokenOut.decimals,
+    );
+
+    return analyzeTradeHelper(
+      reserveIn, reserveOut, params.amount, decimalsIn, decimalsOut,
+      params.slippageToleranceBps ?? DEFAULT_SLIPPAGE_BPS,
+    );
+  }
+
+  // --- Internal helpers for analysis ---
+
+  private async findPairForTokens(hashA: string, hashB: string): Promise<Pair | null> {
+    const wcsprHash = this.networkConfig.wcsprPackageHash;
+    // Resolve CSPR to WCSPR for pair lookup
+    const resolvedA = hashA === 'cspr' ? wcsprHash : hashA;
+    const resolvedB = hashB === 'cspr' ? wcsprHash : hashB;
+
+    const pairs = await this.pairsApi.getPairs({ pageSize: 100 });
+    const normalise = (h: string) => h.replace('hash-', '').toLowerCase();
+    return pairs.data.find(p => {
+      const t0 = normalise(p.token0.packageHash);
+      const t1 = normalise(p.token1.packageHash);
+      const a = normalise(resolvedA);
+      const b = normalise(resolvedB);
+      return (t0 === a && t1 === b) || (t0 === b && t1 === a);
+    }) ?? null;
+  }
+
+  private orientReserves(
+    pair: Pair,
+    tokenInHash: string,
+    decimalsIn: number,
+    decimalsOut: number,
+  ): [string, string, number, number] {
+    const normalise = (h: string) => h.replace('hash-', '').toLowerCase();
+    const wcsprHash = normalise(this.networkConfig.wcsprPackageHash);
+    const inHash = tokenInHash === 'cspr' ? wcsprHash : normalise(tokenInHash);
+
+    if (normalise(pair.token0.packageHash) === inHash) {
+      return [pair.reserve0, pair.reserve1, decimalsIn, decimalsOut];
+    }
+    return [pair.reserve1, pair.reserve0, decimalsIn, decimalsOut];
   }
 
   // --- Account Data ---

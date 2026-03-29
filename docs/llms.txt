@@ -1,6 +1,6 @@
 # CSPR.trade MCP Server
 
-> CSPR.trade is a decentralized exchange (DEX) on the Casper Network, forked from Uniswap V2. This MCP server provides 14 tools for market data, trading, liquidity management, account queries, and local transaction signing.
+> CSPR.trade is a decentralized exchange (DEX) on the Casper Network, forked from Uniswap V2. This MCP server provides 18 tools for market data, trading, liquidity management, trade analysis, account queries, and local transaction signing.
 
 ## Protocol Overview
 
@@ -8,7 +8,7 @@ CSPR.trade is an automated market maker (AMM) DEX built on the Casper blockchain
 
 ## MCP Server
 
-The `@make-software/cspr-trade-mcp` server exposes 14 tools over the Model Context Protocol (MCP). It supports stdio transport (local) and HTTP Streamable transport (remote), and wraps the `@make-software/cspr-trade-mcp-sdk` TypeScript SDK.
+The `@make-software/cspr-trade-mcp` server exposes 18 tools over the Model Context Protocol (MCP). It supports stdio transport (local) and HTTP Streamable transport (remote), and wraps the `@make-software/cspr-trade-mcp-sdk` TypeScript SDK.
 
 ### Configuration
 
@@ -296,6 +296,80 @@ Returns: Signed transaction JSON, signer public key, and transaction hash.
 
 ---
 
+### Trade Analysis Tools (v0.2.0)
+
+Pre-trade intelligence for AI agents. Analyze price impact, slippage, and liquidity depth before executing swaps. Uses the constant-product AMM formula (x × y = k) with 0.3% fee.
+
+#### estimate_price_impact
+Estimate how much a swap will move the price. Returns severity classification.
+
+Parameters:
+- `token_in` (string, required): Input token symbol (e.g., "CSPR")
+- `token_out` (string, required): Output token symbol (e.g., "USDT")
+- `amount` (string, required): Human-readable input amount (e.g., "50000")
+
+Example:
+```
+estimate_price_impact({ token_in: "CSPR", token_out: "USDT", amount: "50000" })
+```
+
+Returns: Price impact percentage, severity (low <1%, medium 1-5%, high 5-15%, very_high >15%), execution price, spot price, and optional warning.
+
+---
+
+#### estimate_slippage
+Estimate expected output and recommended slippage tolerance for a swap.
+
+Parameters:
+- `token_in` (string, required): Input token symbol
+- `token_out` (string, required): Output token symbol
+- `amount` (string, required): Human-readable input amount
+- `slippage_tolerance_bps` (number, optional): Your slippage tolerance in basis points (default 300 = 3%)
+
+Example:
+```
+estimate_slippage({ token_in: "CSPR", token_out: "USDT", amount: "10000", slippage_tolerance_bps: 300 })
+```
+
+Returns: Expected output (formatted), minimum output at tolerance, actual slippage in bps, recommended tolerance. Warns if expected slippage exceeds your tolerance.
+
+---
+
+#### analyze_trade
+Comprehensive pre-trade analysis combining price impact, slippage, and an actionable recommendation. **Use this before large swaps.**
+
+Parameters:
+- `token_in` (string, required): Input token symbol
+- `token_out` (string, required): Output token symbol
+- `amount` (string, required): Human-readable input amount
+- `slippage_tolerance_bps` (number, optional): Slippage tolerance in bps (default 300)
+
+Example:
+```
+analyze_trade({ token_in: "CSPR", token_out: "USDT", amount: "500000", slippage_tolerance_bps: 300 })
+```
+
+Returns: Price impact details, slippage estimate, recommendation (proceed/caution/high_risk/not_recommended), human-readable recommendation text, and all warnings.
+
+---
+
+#### optimal_liquidity_amounts
+Given one token amount, calculate the optimal paired amount for adding liquidity to maintain the pool ratio.
+
+Parameters:
+- `token_a` (string, required): First token symbol (e.g., "CSPR")
+- `token_b` (string, required): Second token symbol (e.g., "USDT")
+- `amount_a` (string, required): Human-readable amount of token A to deposit
+
+Example:
+```
+optimal_liquidity_amounts({ token_a: "CSPR", token_b: "USDT", amount_a: "100000" })
+```
+
+Returns: Optimal amount of token B, estimated pool share percentage, and whether this creates a new pool.
+
+---
+
 ### Account Tools
 
 #### get_liquidity_positions
@@ -355,6 +429,29 @@ Returns: Paginated swap history with transaction hashes, amounts, and timestamps
 ---
 
 ## Common Workflows
+
+### 0. Pre-Trade Analysis (Recommended Before Large Swaps)
+
+Step 1: Analyze the trade to get a recommendation.
+```
+analyze_trade({ token_in: "CSPR", token_out: "USDT", amount: "500000" })
+```
+
+Step 2: Check the recommendation:
+- `proceed`: Safe to execute.
+- `caution`: Show the user the details (price impact, slippage), let them decide.
+- `high_risk`: Recommend splitting into smaller trades to reduce price impact.
+- `not_recommended`: Advise against the trade.
+
+Step 3: If recommending a split, estimate impact of smaller amounts:
+```
+estimate_price_impact({ token_in: "CSPR", token_out: "USDT", amount: "100000" })
+```
+
+Step 4: When adding liquidity, compute optimal paired amounts:
+```
+optimal_liquidity_amounts({ token_a: "CSPR", token_b: "USDT", amount_a: "100000" })
+```
 
 ### 1. Check Token Prices and Get a Swap Quote
 

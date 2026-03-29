@@ -13,7 +13,7 @@ export function createServer(config: CsprTradeClientConfig): McpServer {
 
   const server = new McpServer({
     name: 'cspr-trade',
-    version: '0.2.0',
+    version: '0.3.0',
   });
 
   registerMarketDataTools(server, client);

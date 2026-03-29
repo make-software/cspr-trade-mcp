@@ -113,6 +113,15 @@ Agent flow: `build_swap` (remote) -> `sign_deploy` (local) -> `submit_transactio
 | `get_impermanent_loss` | Impermanent loss for a position |
 | `get_swap_history` | Swap history, filterable by account or pair |
 
+### Trade Analysis
+
+| Tool | Description |
+|------|-------------|
+| `estimate_price_impact` | Estimate price impact before a swap — severity classification, execution vs. spot price |
+| `estimate_slippage` | Estimate expected output and recommended slippage tolerance |
+| `analyze_trade` | Comprehensive pre-trade analysis: impact + slippage + actionable recommendation |
+| `optimal_liquidity_amounts` | Calculate optimal paired token amount for LP deposits |
+
 ### Signer (--signer mode only)
 
 | Tool | Description |
@@ -145,6 +154,48 @@ deadline_minutes:  20         # Optional, default 20
 ```
 
 Returns unsigned deploy JSON, human-readable summary, and safety warnings (high price impact, excessive slippage).
+
+### estimate_price_impact
+
+```
+token_in:  "CSPR"          # Input token symbol
+token_out: "USDT"          # Output token symbol
+amount:    "50000"         # Human-readable input amount
+```
+
+Returns: Price impact percentage, severity (low/medium/high/very_high), execution price, spot price, and optional warning.
+
+### estimate_slippage
+
+```
+token_in:               "CSPR"
+token_out:              "USDT"
+amount:                 "10000"
+slippage_tolerance_bps: 300    # Optional, default 3%
+```
+
+Returns: Expected output, minimum output at given tolerance, actual slippage in bps, recommended tolerance. Warns if expected slippage exceeds your tolerance.
+
+### analyze_trade
+
+```
+token_in:               "CSPR"
+token_out:              "USDT"
+amount:                 "500000"
+slippage_tolerance_bps: 300    # Optional
+```
+
+Returns: Combined price impact + slippage analysis, recommendation (proceed/caution/high_risk/not_recommended), human-readable recommendation text, and all warnings. **Use this before large swaps.**
+
+### optimal_liquidity_amounts
+
+```
+token_a:  "CSPR"
+token_b:  "USDT"
+amount_a: "100000"         # Amount of token A to deposit
+```
+
+Returns: Optimal paired amount of token B, estimated pool share percentage, and whether this creates a new pool.
 
 ### sign_deploy
 

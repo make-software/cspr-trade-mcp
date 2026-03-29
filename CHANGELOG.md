@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-03-29
+
+### Added
+- **Trade Analysis SDK (v0.2.0)** — 4 new pre-trade intelligence functions:
+  - `estimatePriceImpact()` — AMM constant-product formula, severity classification (low/medium/high/very_high)
+  - `estimateSlippage()` — expected output vs spot, minimum output, recommended tolerance
+  - `computeOptimalLiquidityAmounts()` — calculate paired token amount for LP deposits
+  - `analyzeTrade()` — comprehensive analysis with recommendation engine (proceed/caution/high_risk/not_recommended)
+- **4 new MCP tools** — `estimate_price_impact`, `estimate_slippage`, `analyze_trade`, `optimal_liquidity_amounts`
+- **Health monitoring endpoint** — enhanced `/health` with uptime, memory, active sessions; `?deep=1` for Casper RPC + CSPR.trade API connectivity checks
+- **Scotty monitoring script** — `scripts/health-check.sh` for external monitoring (human-readable + JSON output, exit codes 0/1/2)
+- 13 new unit tests (91 total, 0 failures)
+
+### Changed
+- MCP server version bumped to 0.3.0
+- SDK version bumped to 0.2.0
+
 ## [0.1.0] - 2026-03-08
 
 ### Added
@@ -21,5 +38,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Claude Code SKILL.md for guided DEX interactions
 - `llms.txt` for LLM-readable documentation
 
-[Unreleased]: https://github.com/make-software/cspr-trade-mcp/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/make-software/cspr-trade-mcp/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/make-software/cspr-trade-mcp/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/make-software/cspr-trade-mcp/releases/tag/v0.1.0

@@ -10,7 +10,7 @@ A production MCP server is live at:
 https://mcp.cspr.trade/mcp
 ```
 
-This is a Streamable HTTP endpoint on Casper **mainnet**. It exposes 14 tools for market data, swaps, liquidity, and account queries — ready for any MCP-compatible client.
+This is a Streamable HTTP endpoint on Casper **mainnet**. It exposes 18 tools for market data, swaps, liquidity, trade analysis, and account queries — ready for any MCP-compatible client.
 
 Health check: [`https://mcp.cspr.trade/health`](https://mcp.cspr.trade/health)
 
@@ -54,7 +54,7 @@ Install the skill from [ClawHub](https://clawhub.com):
 npx clawhub@latest install cspr-trade-mcp
 ```
 
-This installs a complete agent skill with workflow instructions — intent classification, quote-before-swap patterns, price impact warnings, signing flows, and error handling. Your agent reads it and knows how to use all 14 tools correctly.
+This installs a complete agent skill with workflow instructions — intent classification, quote-before-swap patterns, pre-trade analysis, price impact warnings, signing flows, and error handling. Your agent reads it and knows how to use all 18 tools correctly.
 
 Alternatively, point your agent at the raw SKILL.md:
 
@@ -76,7 +76,7 @@ The server speaks **Streamable HTTP** (the standard MCP HTTP transport). No API 
 
 ## What You Can Do
 
-Once connected, your agent has access to **14 tools**:
+Once connected, your agent has access to **18 tools**:
 
 ### Market Data (read-only, no wallet needed)
 - **`get_tokens`** — List tradable tokens with USD/EUR pricing
@@ -84,6 +84,12 @@ Once connected, your agent has access to **14 tools**:
 - **`get_pair_details`** — Deep dive into a specific pair
 - **`get_quote`** — Get swap quotes with routing, price impact, slippage
 - **`get_currencies`** — Available fiat currencies for pricing
+
+### Trade Analysis (read-only, no wallet needed)
+- **`estimate_price_impact`** — Check how much your trade moves the price before executing
+- **`estimate_slippage`** — Get expected output and recommended slippage tolerance
+- **`analyze_trade`** — Full pre-trade analysis with actionable recommendation (proceed/caution/high_risk/not_recommended)
+- **`optimal_liquidity_amounts`** — Calculate optimal paired token amounts for LP deposits
 
 ### Trading (requires a Casper wallet)
 - **`build_swap`** — Build an unsigned swap transaction
@@ -112,7 +118,9 @@ Ask your agent:
 
 > "Show me the top liquidity pools by reserves"
 
-Market data queries work immediately — no wallet needed.
+> "Analyze a trade of 500,000 CSPR to USDT — is it safe?"
+
+Market data and trade analysis queries work immediately — no wallet needed.
 
 ## Non-Custodial Design
 

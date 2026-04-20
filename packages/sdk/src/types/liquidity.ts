@@ -70,3 +70,33 @@ export interface RemoveLiquidityParams {
   deadlineMinutes?: number;
   senderPublicKey: string;
 }
+
+/** Portfolio value result */
+export interface PortfolioValue {
+  positions: Array<{
+    pairContractPackageHash: string;
+    token0Symbol: string;
+    token1Symbol: string;
+    token0Amount: string;
+    token1Amount: string;
+    token0AmountFormatted: string;
+    token1AmountFormatted: string;
+    poolShare: string;
+  }>;
+  totalCsprValue: string;
+  totalUsdValue: string | null;
+}
+
+/** Unrealized PnL result for a single position */
+export interface UnrealizedPnL {
+  pairContractPackageHash: string;
+  token0Symbol: string;
+  token1Symbol: string;
+  impermanentLossValue: string;
+  impermanentLossTimestamp: string;
+  currentToken0Amount: string;
+  currentToken1Amount: string;
+  currentToken0AmountFormatted: string;
+  currentToken1AmountFormatted: string;
+  poolShare: string;
+}

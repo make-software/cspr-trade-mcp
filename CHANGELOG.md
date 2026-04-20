@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-04-20
+
+### Added
+- **Portfolio Value SDK** — `getPortfolioValue(publicKey, currency?)` aggregates all LP positions and returns CSPR + USD estimates
+- **Unrealized PnL SDK** — `getUnrealizedPnL(publicKey, pairHash?)` returns per-position impermanent loss and current token amounts
+- **`get_portfolio_value` MCP tool** — wraps `getPortfolioValue`, accepts `account_public_key` + optional `currency`
+- **`get_pnl` MCP tool** — wraps `getUnrealizedPnL`, accepts `account_public_key` + optional `pair_contract_package_hash` filter
+- New types exported: `PortfolioValue`, `UnrealizedPnL`
+- SDK version bumped to 0.3.0
+
 ## [0.2.0] - 2026-03-29
 
 ### Added

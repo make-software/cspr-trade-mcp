@@ -43,6 +43,7 @@ import { getProxyCallerWasm } from './assets/index.js';
 import type {
   Token, Pair, Quote, QuoteParams, QuoteType, Currency,
   LiquidityPosition, LiquidityPositionApiResponse, ImpermanentLoss,
+  PortfolioValue, UnrealizedPnL,
   SwapParams, ApprovalParams, AddLiquidityParams, RemoveLiquidityParams,
   TransactionBundle, SubmitResult, Signer,
   SwapHistoryQuery,
@@ -329,6 +330,96 @@ export class CsprTradeClient {
       page: opts?.page,
       pageSize: opts?.pageSize,
     });
+  }
+
+  async getPortfolioValue(publicKey: string, currency?: string): Promise<PortfolioValue> {
+    const positions = await this.getLiquidityPositions(publicKey, currency);
+
+    // Fetch CSPR/USD rate (currency_id=1 = USD) — best-effort, null if unavailable
+    let usdPerCspr: number | null = null;
+    try {
+      const rateData = await this.ratesApi.getCsprRate(1) as { price?: number; rate?: number } | null;
+      if (rateData) {
+        usdPerCspr = rateData.price ?? rateData.rate ?? null;
+      }
+    } catch {
+      // rate fetch is best-effort
+    }
+
+    const wcsprHash = this.networkConfig.wcsprPackageHash.replace('hash-', '').toLowerCase();
+    let totalCsprMotes = 0n;
+
+    const positionDetails = positions.map(p => {
+      const decimals0 = p.pair.decimals0;
+      const decimals1 = p.pair.decimals1;
+      const amt0 = BigInt(p.estimatedToken0Amount);
+      const amt1 = BigInt(p.estimatedToken1Amount);
+
+      const fmt = (raw: bigint, decimals: number) =>
+        (Number(raw) / Math.pow(10, decimals)).toFixed(6);
+
+      // Accumulate CSPR equivalent: if either token is WCSPR, add its mote value
+      const isToken0Cspr = p.pair.token0PackageHash.replace('hash-', '').toLowerCase() === wcsprHash;
+      const isToken1Cspr = p.pair.token1PackageHash.replace('hash-', '').toLowerCase() === wcsprHash;
+      if (isToken0Cspr) totalCsprMotes += amt0 * 2n; // approximate: CSPR side × 2 for 50/50 pool
+      else if (isToken1Cspr) totalCsprMotes += amt1 * 2n;
+
+      return {
+        pairContractPackageHash: p.pairContractPackageHash,
+        token0Symbol: p.pair.token0Symbol,
+        token1Symbol: p.pair.token1Symbol,
+        token0Amount: p.estimatedToken0Amount,
+        token1Amount: p.estimatedToken1Amount,
+        token0AmountFormatted: fmt(amt0, decimals0),
+        token1AmountFormatted: fmt(amt1, decimals1),
+        poolShare: p.poolShare,
+      };
+    });
+
+    const csprDecimals = 9;
+    const totalCsprValue = (Number(totalCsprMotes) / Math.pow(10, csprDecimals)).toFixed(6);
+    const totalUsdValue = usdPerCspr !== null
+      ? (parseFloat(totalCsprValue) * usdPerCspr).toFixed(2)
+      : null;
+
+    return { positions: positionDetails, totalCsprValue, totalUsdValue };
+  }
+
+  async getUnrealizedPnL(publicKey: string, pairContractPackageHash?: string): Promise<UnrealizedPnL[]> {
+    const positions = await this.getLiquidityPositions(publicKey);
+    const filtered = pairContractPackageHash
+      ? positions.filter(p => p.pairContractPackageHash === pairContractPackageHash)
+      : positions;
+
+    const results: UnrealizedPnL[] = [];
+    for (const p of filtered) {
+      let ilValue = '0';
+      let ilTimestamp = '';
+      try {
+        const il = await this.liquidityApi.getImpermanentLoss(publicKey, p.pairContractPackageHash);
+        ilValue = il.value ?? '0';
+        ilTimestamp = il.timestamp ?? '';
+      } catch {
+        // IL not available for this position
+      }
+
+      const fmt = (raw: bigint, decimals: number) =>
+        (Number(raw) / Math.pow(10, decimals)).toFixed(6);
+
+      results.push({
+        pairContractPackageHash: p.pairContractPackageHash,
+        token0Symbol: p.pair.token0Symbol,
+        token1Symbol: p.pair.token1Symbol,
+        impermanentLossValue: ilValue,
+        impermanentLossTimestamp: ilTimestamp,
+        currentToken0Amount: p.estimatedToken0Amount,
+        currentToken1Amount: p.estimatedToken1Amount,
+        currentToken0AmountFormatted: fmt(BigInt(p.estimatedToken0Amount), p.pair.decimals0),
+        currentToken1AmountFormatted: fmt(BigInt(p.estimatedToken1Amount), p.pair.decimals1),
+        poolShare: p.poolShare,
+      });
+    }
+    return results;
   }
 
   // --- Transaction Building ---

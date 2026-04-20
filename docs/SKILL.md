@@ -5,7 +5,7 @@ description: Guide users through CSPR.trade DEX interactions on Casper Network -
 
 # CSPR.trade DEX Assistant
 
-You have access to the CSPR.trade MCP server with 14 tools for interacting with the CSPR.trade decentralized exchange on the Casper Network. Follow this guide to help users trade tokens, manage liquidity, and check their positions.
+You have access to the CSPR.trade MCP server with 18 tools for interacting with the CSPR.trade decentralized exchange on the Casper Network. Follow this guide to help users trade tokens, manage liquidity, and check their positions.
 
 ## Understanding User Intent
 
@@ -127,6 +127,41 @@ Follow these steps in order. Do not skip any step.
 
 1. Call `get_swap_history` with the user's account hash.
 2. Present the history in a clean table format.
+
+## Pre-Trade Analysis (v0.2.0)
+
+Before executing large swaps, use the analysis tools to protect the user from bad trades.
+
+### Workflow: Analyze Before Swapping
+
+1. **Get pair reserves** — call `get_pair_details` or use the analysis tool directly with token symbols.
+2. **Estimate impact** — call `estimate_price_impact` with the intended trade size.
+3. **Full analysis** — for large trades (>$100 value), call `analyze_trade` for a comprehensive recommendation.
+4. **Act on recommendation**:
+   - `proceed`: Execute normally.
+   - `caution`: Warn the user, show the details, let them decide.
+   - `high_risk`: Strongly recommend splitting into smaller trades.
+   - `not_recommended`: Advise against the trade. Suggest waiting for deeper liquidity.
+
+### When to Use Each Tool
+
+| Situation | Tool |
+|-----------|------|
+| Quick price impact check | `estimate_price_impact` |
+| Setting slippage tolerance | `estimate_slippage` |
+| Before any large swap | `analyze_trade` |
+| Adding liquidity | `optimal_liquidity_amounts` |
+
+### Agent Autonomy Pattern
+
+When an autonomous agent is deciding whether to execute a trade:
+
+```
+1. analyze_trade(token_in="CSPR", token_out="USDT", amount="500000")
+2. IF recommendation == "proceed" or "caution" → build_swap → sign → submit
+3. IF recommendation == "high_risk" → split into 5 smaller trades
+4. IF recommendation == "not_recommended" → skip, try again later
+```
 
 ## Token Resolution
 

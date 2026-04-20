@@ -24,6 +24,16 @@ import {
   type NetworkConfig,
 } from './config.js';
 import { toRawAmount, toFormattedAmount, calculateMinWithSlippage, calculateMaxWithSlippage } from './utils/amounts.js';
+import {
+  estimatePriceImpact as estimatePriceImpactHelper,
+  estimateSlippage as estimateSlippageHelper,
+  computeOptimalLiquidityAmounts as computeOptimalHelper,
+  analyzeTrade as analyzeTradeHelper,
+  type PriceImpactEstimate,
+  type SlippageEstimate,
+  type OptimalLiquidityResult,
+  type TradeAnalysis,
+} from './analysis/trade-analysis.js';
 import { buildProxyWasmArgs } from './transactions/proxy-wasm.js';
 import { getSwapEntryPoint, buildSwapInnerArgs, getSwapAttachedValue } from './transactions/swap.js';
 import { buildAddLiquidityInnerArgs, buildRemoveLiquidityInnerArgs } from './transactions/liquidity.js';
@@ -33,6 +43,7 @@ import { getProxyCallerWasm } from './assets/index.js';
 import type {
   Token, Pair, Quote, QuoteParams, QuoteType, Currency,
   LiquidityPosition, LiquidityPositionApiResponse, ImpermanentLoss,
+  PortfolioValue, UnrealizedPnL,
   SwapParams, ApprovalParams, AddLiquidityParams, RemoveLiquidityParams,
   TransactionBundle, SubmitResult, Signer,
   SwapHistoryQuery,
@@ -149,6 +160,149 @@ export class CsprTradeClient {
     return this.currenciesApi.getCurrencies();
   }
 
+  // --- Trade Analysis ---
+
+  /**
+   * Estimate price impact for a swap without building a transaction.
+   * Fetches pool reserves automatically from the pair.
+   */
+  async estimatePriceImpact(params: {
+    tokenIn: string;
+    tokenOut: string;
+    amount: string;
+  }): Promise<PriceImpactEstimate> {
+    const tokenIn = await this.tokenResolver.resolve(params.tokenIn);
+    const tokenOut = await this.tokenResolver.resolve(params.tokenOut);
+    const pair = await this.findPairForTokens(tokenIn.packageHash, tokenOut.packageHash);
+    if (!pair) throw new Error(`No liquidity pool found for ${tokenIn.symbol}/${tokenOut.symbol}`);
+
+    const [reserveIn, reserveOut, decimalsIn, decimalsOut] = this.orientReserves(
+      pair, tokenIn.packageHash, tokenIn.decimals, tokenOut.decimals,
+    );
+
+    return estimatePriceImpactHelper(reserveIn, reserveOut, params.amount, decimalsIn, decimalsOut);
+  }
+
+  /**
+   * Estimate slippage for a swap — expected output vs. spot price.
+   */
+  async estimateSlippage(params: {
+    tokenIn: string;
+    tokenOut: string;
+    amount: string;
+    slippageToleranceBps?: number;
+  }): Promise<SlippageEstimate> {
+    const tokenIn = await this.tokenResolver.resolve(params.tokenIn);
+    const tokenOut = await this.tokenResolver.resolve(params.tokenOut);
+    const pair = await this.findPairForTokens(tokenIn.packageHash, tokenOut.packageHash);
+    if (!pair) throw new Error(`No liquidity pool found for ${tokenIn.symbol}/${tokenOut.symbol}`);
+
+    const [reserveIn, reserveOut, decimalsIn, decimalsOut] = this.orientReserves(
+      pair, tokenIn.packageHash, tokenIn.decimals, tokenOut.decimals,
+    );
+
+    return estimateSlippageHelper(
+      reserveIn, reserveOut, params.amount, decimalsIn, decimalsOut,
+      params.slippageToleranceBps ?? DEFAULT_SLIPPAGE_BPS,
+    );
+  }
+
+  /**
+   * Compute optimal token B amount for adding liquidity given a token A amount.
+   */
+  async getOptimalLiquidityAmounts(params: {
+    tokenA: string;
+    tokenB: string;
+    amountA: string;
+  }): Promise<OptimalLiquidityResult> {
+    const tokenA = await this.tokenResolver.resolve(params.tokenA);
+    const tokenB = await this.tokenResolver.resolve(params.tokenB);
+    const pair = await this.findPairForTokens(tokenA.packageHash, tokenB.packageHash);
+    if (!pair) {
+      return {
+        amountA: params.amountA,
+        amountB: '0',
+        estimatedPoolSharePct: '100.00',
+        isNewPool: true,
+      };
+    }
+
+    const [reserveA, reserveB] = this.orientReserves(
+      pair, tokenA.packageHash, tokenA.decimals, tokenB.decimals,
+    );
+
+    // Fetch LP supply from positions API (approximate from pair data)
+    const positions = await this.liquidityApi.getPositions('');
+    const matchingPos = positions.find(
+      p => p.pair_contract_package_hash === pair.contractPackageHash,
+    );
+    const lpSupply = matchingPos?.pair_lp_tokens_total_supply ?? '1000000000';
+
+    return computeOptimalHelper(
+      reserveA, reserveB, params.amountA,
+      tokenA.decimals, tokenB.decimals, lpSupply,
+    );
+  }
+
+  /**
+   * Comprehensive trade analysis combining price impact, slippage estimation, and recommendation.
+   */
+  async analyzeTrade(params: {
+    tokenIn: string;
+    tokenOut: string;
+    amount: string;
+    slippageToleranceBps?: number;
+  }): Promise<TradeAnalysis> {
+    const tokenIn = await this.tokenResolver.resolve(params.tokenIn);
+    const tokenOut = await this.tokenResolver.resolve(params.tokenOut);
+    const pair = await this.findPairForTokens(tokenIn.packageHash, tokenOut.packageHash);
+    if (!pair) throw new Error(`No liquidity pool found for ${tokenIn.symbol}/${tokenOut.symbol}`);
+
+    const [reserveIn, reserveOut, decimalsIn, decimalsOut] = this.orientReserves(
+      pair, tokenIn.packageHash, tokenIn.decimals, tokenOut.decimals,
+    );
+
+    return analyzeTradeHelper(
+      reserveIn, reserveOut, params.amount, decimalsIn, decimalsOut,
+      params.slippageToleranceBps ?? DEFAULT_SLIPPAGE_BPS,
+    );
+  }
+
+  // --- Internal helpers for analysis ---
+
+  private async findPairForTokens(hashA: string, hashB: string): Promise<Pair | null> {
+    const wcsprHash = this.networkConfig.wcsprPackageHash;
+    // Resolve CSPR to WCSPR for pair lookup
+    const resolvedA = hashA === 'cspr' ? wcsprHash : hashA;
+    const resolvedB = hashB === 'cspr' ? wcsprHash : hashB;
+
+    const pairs = await this.pairsApi.getPairs({ pageSize: 100 });
+    const normalise = (h: string) => h.replace('hash-', '').toLowerCase();
+    return pairs.data.find(p => {
+      const t0 = normalise(p.token0.packageHash);
+      const t1 = normalise(p.token1.packageHash);
+      const a = normalise(resolvedA);
+      const b = normalise(resolvedB);
+      return (t0 === a && t1 === b) || (t0 === b && t1 === a);
+    }) ?? null;
+  }
+
+  private orientReserves(
+    pair: Pair,
+    tokenInHash: string,
+    decimalsIn: number,
+    decimalsOut: number,
+  ): [string, string, number, number] {
+    const normalise = (h: string) => h.replace('hash-', '').toLowerCase();
+    const wcsprHash = normalise(this.networkConfig.wcsprPackageHash);
+    const inHash = tokenInHash === 'cspr' ? wcsprHash : normalise(tokenInHash);
+
+    if (normalise(pair.token0.packageHash) === inHash) {
+      return [pair.reserve0, pair.reserve1, decimalsIn, decimalsOut];
+    }
+    return [pair.reserve1, pair.reserve0, decimalsIn, decimalsOut];
+  }
+
   // --- Account Data ---
 
   async getLiquidityPositions(publicKey: string, currency?: string): Promise<LiquidityPosition[]> {
@@ -176,6 +330,96 @@ export class CsprTradeClient {
       page: opts?.page,
       pageSize: opts?.pageSize,
     });
+  }
+
+  async getPortfolioValue(publicKey: string, currency?: string): Promise<PortfolioValue> {
+    const positions = await this.getLiquidityPositions(publicKey, currency);
+
+    // Fetch CSPR/USD rate (currency_id=1 = USD) — best-effort, null if unavailable
+    let usdPerCspr: number | null = null;
+    try {
+      const rateData = await this.ratesApi.getCsprRate(1) as { price?: number; rate?: number } | null;
+      if (rateData) {
+        usdPerCspr = rateData.price ?? rateData.rate ?? null;
+      }
+    } catch {
+      // rate fetch is best-effort
+    }
+
+    const wcsprHash = this.networkConfig.wcsprPackageHash.replace('hash-', '').toLowerCase();
+    let totalCsprMotes = 0n;
+
+    const positionDetails = positions.map(p => {
+      const decimals0 = p.pair.decimals0;
+      const decimals1 = p.pair.decimals1;
+      const amt0 = BigInt(p.estimatedToken0Amount);
+      const amt1 = BigInt(p.estimatedToken1Amount);
+
+      const fmt = (raw: bigint, decimals: number) =>
+        (Number(raw) / Math.pow(10, decimals)).toFixed(6);
+
+      // Accumulate CSPR equivalent: if either token is WCSPR, add its mote value
+      const isToken0Cspr = p.pair.token0PackageHash.replace('hash-', '').toLowerCase() === wcsprHash;
+      const isToken1Cspr = p.pair.token1PackageHash.replace('hash-', '').toLowerCase() === wcsprHash;
+      if (isToken0Cspr) totalCsprMotes += amt0 * 2n; // approximate: CSPR side × 2 for 50/50 pool
+      else if (isToken1Cspr) totalCsprMotes += amt1 * 2n;
+
+      return {
+        pairContractPackageHash: p.pairContractPackageHash,
+        token0Symbol: p.pair.token0Symbol,
+        token1Symbol: p.pair.token1Symbol,
+        token0Amount: p.estimatedToken0Amount,
+        token1Amount: p.estimatedToken1Amount,
+        token0AmountFormatted: fmt(amt0, decimals0),
+        token1AmountFormatted: fmt(amt1, decimals1),
+        poolShare: p.poolShare,
+      };
+    });
+
+    const csprDecimals = 9;
+    const totalCsprValue = (Number(totalCsprMotes) / Math.pow(10, csprDecimals)).toFixed(6);
+    const totalUsdValue = usdPerCspr !== null
+      ? (parseFloat(totalCsprValue) * usdPerCspr).toFixed(2)
+      : null;
+
+    return { positions: positionDetails, totalCsprValue, totalUsdValue };
+  }
+
+  async getUnrealizedPnL(publicKey: string, pairContractPackageHash?: string): Promise<UnrealizedPnL[]> {
+    const positions = await this.getLiquidityPositions(publicKey);
+    const filtered = pairContractPackageHash
+      ? positions.filter(p => p.pairContractPackageHash === pairContractPackageHash)
+      : positions;
+
+    const results: UnrealizedPnL[] = [];
+    for (const p of filtered) {
+      let ilValue = '0';
+      let ilTimestamp = '';
+      try {
+        const il = await this.liquidityApi.getImpermanentLoss(publicKey, p.pairContractPackageHash);
+        ilValue = il.value ?? '0';
+        ilTimestamp = il.timestamp ?? '';
+      } catch {
+        // IL not available for this position
+      }
+
+      const fmt = (raw: bigint, decimals: number) =>
+        (Number(raw) / Math.pow(10, decimals)).toFixed(6);
+
+      results.push({
+        pairContractPackageHash: p.pairContractPackageHash,
+        token0Symbol: p.pair.token0Symbol,
+        token1Symbol: p.pair.token1Symbol,
+        impermanentLossValue: ilValue,
+        impermanentLossTimestamp: ilTimestamp,
+        currentToken0Amount: p.estimatedToken0Amount,
+        currentToken1Amount: p.estimatedToken1Amount,
+        currentToken0AmountFormatted: fmt(BigInt(p.estimatedToken0Amount), p.pair.decimals0),
+        currentToken1AmountFormatted: fmt(BigInt(p.estimatedToken1Amount), p.pair.decimals1),
+        poolShare: p.poolShare,
+      });
+    }
+    return results;
   }
 
   // --- Transaction Building ---

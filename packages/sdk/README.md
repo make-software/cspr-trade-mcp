@@ -211,6 +211,85 @@ const result = await client.submitTransaction(signedDeployJson);
 console.log(result.transactionHash);
 ```
 
+### Trade Analysis (v0.2.0)
+
+Pre-trade intelligence — analyze price impact, slippage, and liquidity before executing. Uses the constant-product AMM formula (x × y = k) with 0.3% fee.
+
+#### `estimatePriceImpact(params)`
+
+Estimate how much your trade moves the price.
+
+```typescript
+const impact = await client.estimatePriceImpact({
+  tokenIn: 'CSPR',
+  tokenOut: 'USDT',
+  amount: '50000',
+});
+console.log(impact.priceImpactPct);  // "3.21"
+console.log(impact.severity);        // "medium"
+console.log(impact.executionPrice);  // "0.01145"
+console.log(impact.spotPrice);       // "0.01183"
+if (impact.warning) console.log(impact.warning);
+```
+
+Severity thresholds: `low` (<1%), `medium` (1-5%), `high` (5-15%), `very_high` (>15%).
+
+#### `estimateSlippage(params)`
+
+Estimate expected output and recommended slippage tolerance.
+
+```typescript
+const slip = await client.estimateSlippage({
+  tokenIn: 'CSPR',
+  tokenOut: 'USDT',
+  amount: '10000',
+  slippageToleranceBps: 300, // optional, default 300 (3%)
+});
+console.log(slip.expectedOutputFormatted);  // "118.42 USDT"
+console.log(slip.minimumOutputFormatted);   // "114.87 USDT"
+console.log(slip.recommendedSlippageBps);   // 350
+```
+
+#### `getOptimalLiquidityAmounts(params)`
+
+Calculate the paired token amount for LP deposits to maintain pool ratio.
+
+```typescript
+const liq = await client.getOptimalLiquidityAmounts({
+  tokenA: 'CSPR',
+  tokenB: 'USDT',
+  amountA: '100000',
+});
+console.log(liq.amountA);                // "100000"
+console.log(liq.amountB);                // "1183.50"
+console.log(liq.estimatedPoolSharePct);  // "2.41"
+console.log(liq.isNewPool);              // false
+```
+
+#### `analyzeTrade(params)`
+
+Comprehensive pre-trade analysis — combines price impact, slippage, and generates an actionable recommendation.
+
+```typescript
+const analysis = await client.analyzeTrade({
+  tokenIn: 'CSPR',
+  tokenOut: 'USDT',
+  amount: '500000',
+  slippageToleranceBps: 300,
+});
+console.log(analysis.recommendation);      // "caution"
+console.log(analysis.recommendationText);  // "Trade has moderate price impact..."
+console.log(analysis.priceImpact.severity); // "high"
+console.log(analysis.warnings);            // ["Price impact exceeds 5%"]
+
+// Agent decision: split into smaller trades
+if (analysis.recommendation === 'high_risk' || analysis.recommendation === 'not_recommended') {
+  console.log('Splitting trade into smaller chunks...');
+}
+```
+
+Recommendation levels: `proceed`, `caution`, `high_risk`, `not_recommended`.
+
 ### Token Resolution
 
 #### `resolveToken(identifier)`

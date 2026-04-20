@@ -48,4 +48,30 @@ export function registerAccountTools(server: McpServer, client: CsprTradeClient)
       return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
     },
   );
+
+  server.tool(
+    'get_portfolio_value',
+    'Get total portfolio value across all liquidity positions for an account. Returns estimated CSPR and USD values.',
+    {
+      account_public_key: z.string().describe('Account public key (hex)'),
+      currency: z.string().optional().describe('Fiat currency code (e.g. USD)'),
+    },
+    async ({ account_public_key, currency }) => {
+      const result = await client.getPortfolioValue(account_public_key, currency);
+      return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+    },
+  );
+
+  server.tool(
+    'get_pnl',
+    'Get unrealized PnL for liquidity positions. Includes impermanent loss and current token amounts.',
+    {
+      account_public_key: z.string().describe('Account public key (hex)'),
+      pair_contract_package_hash: z.string().optional().describe('Filter by specific pair contract package hash'),
+    },
+    async ({ account_public_key, pair_contract_package_hash }) => {
+      const result = await client.getUnrealizedPnL(account_public_key, pair_contract_package_hash);
+      return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+    },
+  );
 }

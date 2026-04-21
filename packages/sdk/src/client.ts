@@ -43,7 +43,7 @@ import { getProxyCallerWasm } from './assets/index.js';
 import type {
   Token, Pair, Quote, QuoteParams, QuoteType, Currency,
   LiquidityPosition, LiquidityPositionApiResponse, ImpermanentLoss,
-  PortfolioValue, UnrealizedPnL,
+  PortfolioValue, PositionStatus, UnrealizedPnL,
   SwapParams, ApprovalParams, AddLiquidityParams, RemoveLiquidityParams,
   TransactionBundle, SubmitResult, Signer,
   SwapHistoryQuery,
@@ -395,14 +395,16 @@ export class CsprTradeClient {
     return { positions: pricedPositions, unpricedPositions, totalCsprValue, totalUsdValue };
   }
 
-  async getUnrealizedPnL(publicKey: string, pairContractPackageHash?: string): Promise<UnrealizedPnL[]> {
+  async getPositionStatus(publicKey: string, pairContractPackageHash?: string): Promise<PositionStatus[]> {
     const positions = await this.getLiquidityPositions(publicKey);
     const filtered = pairContractPackageHash
       ? positions.filter(p => p.pairContractPackageHash === pairContractPackageHash)
       : positions;
 
-    const results: UnrealizedPnL[] = [];
-    for (const p of filtered) {
+    const fmt = (raw: bigint, decimals: number) =>
+      (Number(raw) / Math.pow(10, decimals)).toFixed(6);
+
+    return Promise.all(filtered.map(async p => {
       let ilValue = '0';
       let ilTimestamp = '';
       try {
@@ -412,11 +414,7 @@ export class CsprTradeClient {
       } catch {
         // IL not available for this position
       }
-
-      const fmt = (raw: bigint, decimals: number) =>
-        (Number(raw) / Math.pow(10, decimals)).toFixed(6);
-
-      results.push({
+      return {
         pairContractPackageHash: p.pairContractPackageHash,
         token0Symbol: p.pair.token0Symbol,
         token1Symbol: p.pair.token1Symbol,
@@ -427,9 +425,13 @@ export class CsprTradeClient {
         currentToken0AmountFormatted: fmt(BigInt(p.estimatedToken0Amount), p.pair.decimals0),
         currentToken1AmountFormatted: fmt(BigInt(p.estimatedToken1Amount), p.pair.decimals1),
         poolShare: p.poolShare,
-      });
-    }
-    return results;
+      };
+    }));
+  }
+
+  /** @deprecated Use getPositionStatus instead — this function does not compute PnL */
+  async getUnrealizedPnL(publicKey: string, pairContractPackageHash?: string): Promise<UnrealizedPnL[]> {
+    return this.getPositionStatus(publicKey, pairContractPackageHash);
   }
 
   // --- Transaction Building ---

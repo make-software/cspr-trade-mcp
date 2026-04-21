@@ -63,14 +63,14 @@ export function registerAccountTools(server: McpServer, client: CsprTradeClient)
   );
 
   server.tool(
-    'get_pnl',
-    'Get unrealized PnL for liquidity positions. Includes impermanent loss and current token amounts.',
+    'get_position_status',
+    'Get current position status for liquidity positions. Returns impermanent loss and current token amounts per position. Note: this is not cost-basis PnL — no historical entry price is used.',
     {
       account_public_key: z.string().describe('Account public key (hex)'),
       pair_contract_package_hash: z.string().optional().describe('Filter by specific pair contract package hash'),
     },
     async ({ account_public_key, pair_contract_package_hash }) => {
-      const result = await client.getUnrealizedPnL(account_public_key, pair_contract_package_hash);
+      const result = await client.getPositionStatus(account_public_key, pair_contract_package_hash);
       return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
     },
   );

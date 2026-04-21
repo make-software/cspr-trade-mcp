@@ -93,8 +93,8 @@ export interface PortfolioValue {
   totalUsdValue: string | null;
 }
 
-/** Unrealized PnL result for a single position */
-export interface UnrealizedPnL {
+/** Current position status — impermanent loss and current token amounts (no cost-basis PnL) */
+export interface PositionStatus {
   pairContractPackageHash: string;
   token0Symbol: string;
   token1Symbol: string;
@@ -106,3 +106,6 @@ export interface UnrealizedPnL {
   currentToken1AmountFormatted: string;
   poolShare: string;
 }
+
+/** @deprecated Use PositionStatus instead */
+export type UnrealizedPnL = PositionStatus;

@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { registerAccountTools } from '../../../src/tools/account.js';
 
 describe('Account tools', () => {
-  it('should register all account tools including portfolio and pnl', () => {
+  it('should register all account tools including portfolio and position status', () => {
     const mockServer = { tool: vi.fn() };
     registerAccountTools(mockServer as any, {} as any);
 
@@ -11,6 +11,6 @@ describe('Account tools', () => {
     expect(names).toContain('get_impermanent_loss');
     expect(names).toContain('get_swap_history');
     expect(names).toContain('get_portfolio_value');
-    expect(names).toContain('get_pnl');
+    expect(names).toContain('get_position_status');
   });
 });

@@ -71,18 +71,24 @@ export interface RemoveLiquidityParams {
   senderPublicKey: string;
 }
 
+/** A single position detail within a portfolio */
+export interface PortfolioPosition {
+  pairContractPackageHash: string;
+  token0Symbol: string;
+  token1Symbol: string;
+  token0Amount: string;
+  token1Amount: string;
+  token0AmountFormatted: string;
+  token1AmountFormatted: string;
+  poolShare: string;
+}
+
 /** Portfolio value result */
 export interface PortfolioValue {
-  positions: Array<{
-    pairContractPackageHash: string;
-    token0Symbol: string;
-    token1Symbol: string;
-    token0Amount: string;
-    token1Amount: string;
-    token0AmountFormatted: string;
-    token1AmountFormatted: string;
-    poolShare: string;
-  }>;
+  /** Positions that contain WCSPR — fully valued in CSPR */
+  positions: PortfolioPosition[];
+  /** Positions with no WCSPR side — cannot be priced in CSPR without additional routing */
+  unpricedPositions: PortfolioPosition[];
   totalCsprValue: string;
   totalUsdValue: string | null;
 }

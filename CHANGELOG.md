@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-04-21
+
+### Fixed
+- `getPortfolioValue`: non-WCSPR LP positions (e.g. USDT/USDC) are now returned in a separate `unpricedPositions` list instead of being silently excluded from portfolio totals
+- Removed misleading `* 2n` comment that incorrectly stated all pools are 50/50
+- Added `PortfolioPosition` named interface exported from SDK types
+
+### Added
+- 2 new unit tests covering WCSPR vs non-WCSPR pool separation and empty-portfolio edge case (93 tests total)
+
 ## [0.3.0] - 2026-04-20
 
 ### Added
@@ -48,6 +58,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Claude Code SKILL.md for guided DEX interactions
 - `llms.txt` for LLM-readable documentation
 
-[Unreleased]: https://github.com/make-software/cspr-trade-mcp/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/make-software/cspr-trade-mcp/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/make-software/cspr-trade-mcp/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/make-software/cspr-trade-mcp/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/make-software/cspr-trade-mcp/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/make-software/cspr-trade-mcp/releases/tag/v0.1.0

@@ -349,7 +349,10 @@ export class CsprTradeClient {
     const wcsprHash = this.networkConfig.wcsprPackageHash.replace('hash-', '').toLowerCase();
     let totalCsprMotes = 0n;
 
-    const positionDetails = positions.map(p => {
+    const pricedPositions: PortfolioValue['positions'] = [];
+    const unpricedPositions: PortfolioValue['positions'] = [];
+
+    for (const p of positions) {
       const decimals0 = p.pair.decimals0;
       const decimals1 = p.pair.decimals1;
       const amt0 = BigInt(p.estimatedToken0Amount);
@@ -358,13 +361,7 @@ export class CsprTradeClient {
       const fmt = (raw: bigint, decimals: number) =>
         (Number(raw) / Math.pow(10, decimals)).toFixed(6);
 
-      // Accumulate CSPR equivalent: if either token is WCSPR, add its mote value
-      const isToken0Cspr = p.pair.token0PackageHash.replace('hash-', '').toLowerCase() === wcsprHash;
-      const isToken1Cspr = p.pair.token1PackageHash.replace('hash-', '').toLowerCase() === wcsprHash;
-      if (isToken0Cspr) totalCsprMotes += amt0 * 2n; // approximate: CSPR side × 2 for 50/50 pool
-      else if (isToken1Cspr) totalCsprMotes += amt1 * 2n;
-
-      return {
+      const posDetail = {
         pairContractPackageHash: p.pairContractPackageHash,
         token0Symbol: p.pair.token0Symbol,
         token1Symbol: p.pair.token1Symbol,
@@ -374,7 +371,20 @@ export class CsprTradeClient {
         token1AmountFormatted: fmt(amt1, decimals1),
         poolShare: p.poolShare,
       };
-    });
+
+      const isToken0Cspr = p.pair.token0PackageHash.replace('hash-', '').toLowerCase() === wcsprHash;
+      const isToken1Cspr = p.pair.token1PackageHash.replace('hash-', '').toLowerCase() === wcsprHash;
+
+      if (isToken0Cspr) {
+        totalCsprMotes += amt0 * 2n;
+        pricedPositions.push(posDetail);
+      } else if (isToken1Cspr) {
+        totalCsprMotes += amt1 * 2n;
+        pricedPositions.push(posDetail);
+      } else {
+        unpricedPositions.push(posDetail);
+      }
+    }
 
     const csprDecimals = 9;
     const totalCsprValue = (Number(totalCsprMotes) / Math.pow(10, csprDecimals)).toFixed(6);
@@ -382,7 +392,7 @@ export class CsprTradeClient {
       ? (parseFloat(totalCsprValue) * usdPerCspr).toFixed(2)
       : null;
 
-    return { positions: positionDetails, totalCsprValue, totalUsdValue };
+    return { positions: pricedPositions, unpricedPositions, totalCsprValue, totalUsdValue };
   }
 
   async getUnrealizedPnL(publicKey: string, pairContractPackageHash?: string): Promise<UnrealizedPnL[]> {

@@ -1,4 +1,4 @@
-import casperSdk from 'casper-js-sdk';
+import * as casperSdk from 'casper-js-sdk';
 const { Args, CLTypeKey, CLValue, Key } = casperSdk;
 import type { QuoteType } from '../types/index.js';
 

@@ -1,4 +1,4 @@
-import casperSdk from 'casper-js-sdk';
+import * as casperSdk from 'casper-js-sdk';
 const { PublicKey, HttpHandler, RpcClient, Transaction } = casperSdk;
 
 import { HttpClient } from './api/http.js';

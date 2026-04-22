@@ -1,5 +1,5 @@
 import { hexToBytes } from '@noble/hashes/utils';
-import casperSdk from 'casper-js-sdk';
+import * as casperSdk from 'casper-js-sdk';
 const { Args, CLTypeUInt8, CLValue } = casperSdk;
 
 export interface ProxyWasmArgsParams {

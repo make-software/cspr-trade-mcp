@@ -1,13 +1,11 @@
 import { z } from 'zod';
 import { readFile } from 'node:fs/promises';
-import casperSdk from 'casper-js-sdk';
+import { Transaction, PrivateKey, KeyAlgorithm } from 'casper-js-sdk';
 import * as bip39 from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english';
 import { HDKey } from '@scure/bip32';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { readDeployJson, writeDeployFile } from './deploy-file.js';
-
-const { Transaction, PrivateKey, KeyAlgorithm } = casperSdk;
 
 export function registerSignerTools(server: McpServer) {
   server.tool(

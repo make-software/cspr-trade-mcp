@@ -1,6 +1,6 @@
 {
   "name": "@make-software/cspr-trade-mcp-sdk",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -18,7 +18,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "casper-js-sdk": "^5.0.6",
+    "casper-js-sdk": "^5.0.11",
     "big.js": "^6.2.2",
     "blakejs": "^1.2.1",
     "@noble/hashes": "^1.7.0"

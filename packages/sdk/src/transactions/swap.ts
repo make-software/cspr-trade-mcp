@@ -1,5 +1,4 @@
-import casperSdk from 'casper-js-sdk';
-const { Args, CLTypeKey, CLValue, Key } = casperSdk;
+import { Args, CLTypeKey, CLValue, Key } from 'casper-js-sdk';
 import type { QuoteType } from '../types/index.js';
 
 export function getSwapEntryPoint(

@@ -1,5 +1,4 @@
-import casperSdk from 'casper-js-sdk';
-const { Args, CLValue, Key } = casperSdk;
+import { Args, CLValue, Key } from 'casper-js-sdk';
 
 export interface ApproveArgsParams {
   spenderPackageHash: string;

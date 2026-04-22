@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-04-22
+
+### Fixed
+- **Pure-ESM consumers crashed at module load** with `SyntaxError: The requested module 'casper-js-sdk' does not provide an export named 'default'`. casper-js-sdk shipped a real ESM build in 5.0.10+ via the `exports` field, and the new ESM module has no default export — so the SDK's `import casperSdk from 'casper-js-sdk'` pattern (introduced in 0.1.x for CJS-interop) no longer worked. Switched all 7 import sites to named imports (`import { PublicKey, SessionBuilder, ... } from 'casper-js-sdk'`). Verified end-to-end against a pure `.mjs` consumer: import, `getTokens`, `getSwapHistory`, `getTokenBalance`, and `buildSwap` (full SessionBuilder/PublicKey path) all work.
+
+### Changed
+- Bumped `casper-js-sdk` floor from `^5.0.6` to `^5.0.11` (first version with the proper ESM build that named imports require).
+
 ## [0.4.0] - 2026-04-21
 
 ### Added

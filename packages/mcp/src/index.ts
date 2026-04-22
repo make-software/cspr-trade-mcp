@@ -8,7 +8,7 @@ const signerMode = process.argv.includes('--signer');
 const network = (process.env.CSPR_TRADE_NETWORK as 'mainnet' | 'testnet') ?? 'mainnet';
 const apiUrl = process.env.CSPR_TRADE_API_URL;
 const transport = process.env.CSPR_TRADE_TRANSPORT ?? 'stdio';
-const version = '0.3.2';
+const version = '0.4.0';
 
 function getRateLimitConfig() {
   return {

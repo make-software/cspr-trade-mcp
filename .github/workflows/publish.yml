@@ -21,12 +21,26 @@ jobs:
       - run: npm ci
       - run: npm run build --workspaces
       - run: npm test --workspaces
-      - name: Publish @cspr-trade/sdk
-        run: npm publish --workspace packages/sdk --access public
+      - name: Publish @make-software/cspr-trade-mcp-sdk
+        run: |
+          NAME=$(node -p "require('./packages/sdk/package.json').name")
+          VERSION=$(node -p "require('./packages/sdk/package.json').version")
+          if npm view "$NAME@$VERSION" version > /dev/null 2>&1; then
+            echo "$NAME@$VERSION already published — skipping"
+          else
+            npm publish --workspace packages/sdk --access public
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Publish @cspr-trade/mcp
-        run: npm publish --workspace packages/mcp --access public
+      - name: Publish @make-software/cspr-trade-mcp
+        run: |
+          NAME=$(node -p "require('./packages/mcp/package.json').name")
+          VERSION=$(node -p "require('./packages/mcp/package.json').version")
+          if npm view "$NAME@$VERSION" version > /dev/null 2>&1; then
+            echo "$NAME@$VERSION already published — skipping"
+          else
+            npm publish --workspace packages/mcp --access public
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

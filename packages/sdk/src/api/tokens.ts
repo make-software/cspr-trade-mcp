@@ -1,4 +1,4 @@
-import type { Token, TokenApiResponse, ApiResponse } from '../types/index.js';
+import type { Token, TokenApiResponse, FTTokenOwnershipApiResponse, ApiResponse } from '../types/index.js';
 import { CSPR_TOKEN_ID, CSPR_DECIMALS } from '../config.js';
 import type { HttpClient } from './http.js';
 
@@ -39,6 +39,14 @@ export class TokensApi {
     const response = await this.http.get<ApiResponse<TokenApiResponse[]>>('/tokens', {
       includes: currencyId !== undefined ? `csprtrade_data(${currencyId})` : undefined,
     });
+    return response.data;
+  }
+
+  async getAccountTokenOwnership(accountIdentifier: string): Promise<FTTokenOwnershipApiResponse[]> {
+    const response = await this.http.get<ApiResponse<FTTokenOwnershipApiResponse[]>>(
+      `/accounts/${accountIdentifier}/ft-token-ownership`,
+      { includes: 'contract_package' },
+    );
     return response.data;
   }
 }

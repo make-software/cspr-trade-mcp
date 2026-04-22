@@ -44,6 +44,7 @@ import type {
   Token, Pair, Quote, QuoteParams, QuoteType, Currency,
   LiquidityPosition, LiquidityPositionApiResponse, ImpermanentLoss,
   PortfolioValue, PositionStatus, UnrealizedPnL,
+  TokenBalance, FTTokenOwnershipApiResponse,
   SwapParams, ApprovalParams, AddLiquidityParams, RemoveLiquidityParams,
   TransactionBundle, SubmitResult, Signer,
   SwapHistoryQuery,
@@ -318,6 +319,25 @@ export class CsprTradeClient {
       value: raw.value,
       timestamp: raw.timestamp,
     };
+  }
+
+  /**
+   * Get CEP-18 fungible token balances for an account.
+   * Returns all tokens held by the account, or filters to a specific token if `tokenIdentifier`
+   * matches by symbol, name, or contract package hash. Native CSPR is not included.
+   */
+  async getTokenBalance(publicKey: string, tokenIdentifier?: string): Promise<TokenBalance[]> {
+    const ownerships = await this.tokensApi.getAccountTokenOwnership(publicKey);
+    const balances = ownerships.map(mapTokenBalance);
+
+    if (!tokenIdentifier) return balances;
+
+    const needle = tokenIdentifier.toLowerCase().replace(/^hash-/, '');
+    return balances.filter(b =>
+      b.symbol.toLowerCase() === needle ||
+      b.name.toLowerCase() === needle ||
+      b.contractPackageHash.replace(/^hash-/, '').toLowerCase() === needle,
+    );
   }
 
   async getSwapHistory(opts?: SwapHistoryQuery) {
@@ -786,6 +806,20 @@ export class CsprTradeClient {
   async resolveToken(identifier: string): Promise<Token> {
     return this.tokenResolver.resolve(identifier);
   }
+}
+
+function mapTokenBalance(raw: FTTokenOwnershipApiResponse): TokenBalance {
+  const meta = raw.contract_package?.metadata;
+  const decimals = meta?.decimals ?? 0;
+  return {
+    contractPackageHash: raw.contract_package_hash,
+    symbol: meta?.symbol ?? '',
+    name: meta?.name ?? raw.contract_package?.name ?? '',
+    decimals,
+    balance: raw.balance,
+    balanceFormatted: toFormattedAmount(raw.balance, decimals),
+    iconUrl: raw.contract_package?.icon_url ?? null,
+  };
 }
 
 function mapLiquidityPosition(raw: LiquidityPositionApiResponse): LiquidityPosition {

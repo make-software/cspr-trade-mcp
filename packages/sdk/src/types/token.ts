@@ -46,3 +46,25 @@ export interface Currency {
   name: string;
   symbol: string;
 }
+
+/** Raw API response for /accounts/{id}/ft-token-ownership */
+export interface FTTokenOwnershipApiResponse {
+  contract_package_hash: string;
+  balance: string;
+  owner_hash: string;
+  owner_type: number;
+  contract_package?: ContractPackage;
+}
+
+/** Resolved CEP-18 token balance for SDK consumption */
+export interface TokenBalance {
+  contractPackageHash: string;
+  symbol: string;
+  name: string;
+  decimals: number;
+  /** Raw balance in atomic units */
+  balance: string;
+  /** Human-readable balance (balance / 10^decimals) */
+  balanceFormatted: string;
+  iconUrl: string | null;
+}

@@ -5,7 +5,7 @@ description: Guide users through CSPR.trade DEX interactions on Casper Network -
 
 # CSPR.trade DEX Assistant
 
-You have access to the CSPR.trade MCP server with 20 tools for interacting with the CSPR.trade decentralized exchange on the Casper Network. Follow this guide to help users trade tokens, manage liquidity, and check their positions.
+You have access to the CSPR.trade MCP server with 21 tools for interacting with the CSPR.trade decentralized exchange on the Casper Network. Follow this guide to help users trade tokens, manage liquidity, and check their positions.
 
 ## Understanding User Intent
 

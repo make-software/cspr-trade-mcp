@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **`get_token_balance` MCP tool + `getTokenBalance` SDK method** — query CEP-18 fungible token balances for any Casper account. Returns all held tokens, or filters to a specific token by symbol, name, or contract package hash. Backed by the CSPR.trade `/accounts/{id}/ft-token-ownership` endpoint (proxies CSPR.cloud). Returns balance with metadata (symbol, decimals, formatted amount, icon URL). Native CSPR balance is not included — CEP-18 only.
+- New types exported from SDK: `TokenBalance`, `FTTokenOwnershipApiResponse`
+- Tool count: 21 (was 20)
+
 ## [0.3.2] - 2026-04-21
 
 ### Changed

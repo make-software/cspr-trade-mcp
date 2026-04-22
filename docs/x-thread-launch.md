@@ -5,7 +5,7 @@ Casper just upgraded to v2.2.0 mainnet 🎉
 
 To celebrate: CSPR.trade MCP is live.
 
-Your AI agent can now query prices, build swaps, and manage liquidity on @CasperNetwork's leading DEX — one endpoint, 14 tools, non-custodial.
+Your AI agent can now query prices, build swaps, and manage liquidity on @CasperNetwork's leading DEX — one endpoint, 20 tools, non-custodial.
 
 mcp.cspr.trade
 

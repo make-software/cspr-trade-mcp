@@ -24,7 +24,7 @@ Add to Claude Desktop, Cursor, or any MCP client config:
 }
 ```
 
-That's it. Your agent now has access to 14 tools for market data, swaps, liquidity management, and account queries on the Casper Network.
+That's it. Your agent now has access to 20 tools for market data, swaps, liquidity management, trade analysis, portfolio tracking, and account queries on the Casper Network.
 
 ## What's Available
 
@@ -33,7 +33,8 @@ That's it. Your agent now has access to 14 tools for market data, swaps, liquidi
 | **Market Data** | `get_tokens`, `get_pairs`, `get_pair_details`, `get_quote`, `get_currencies` | No |
 | **Trading** | `build_swap`, `build_approve_token`, `submit_transaction` | Yes |
 | **Liquidity** | `build_add_liquidity`, `build_remove_liquidity` | Yes |
-| **Account** | `get_liquidity_positions`, `get_impermanent_loss`, `get_swap_history` | No |
+| **Trade Analysis** | `estimate_price_impact`, `estimate_slippage`, `analyze_trade`, `optimal_liquidity_amounts` | No |
+| **Account** | `get_liquidity_positions`, `get_impermanent_loss`, `get_swap_history`, `get_portfolio_value`, `get_position_status` | No |
 | **Signing** | `sign_deploy` (signer mode only) | Local key |
 
 **Non-custodial by design.** The MCP server never handles private keys. Transactions are built remotely and signed locally.
@@ -74,7 +75,7 @@ See the [Self-Hosting guide](https://mcp.cspr.trade/docs/self-hosting) for HTTP 
 
 | Package | Description |
 |---------|-------------|
-| [`@make-software/cspr-trade-mcp`](https://www.npmjs.com/package/@make-software/cspr-trade-mcp) | MCP server — 14 tools over stdio or HTTP |
+| [`@make-software/cspr-trade-mcp`](https://www.npmjs.com/package/@make-software/cspr-trade-mcp) | MCP server — 20 tools over stdio or HTTP |
 | [`@make-software/cspr-trade-mcp-sdk`](https://www.npmjs.com/package/@make-software/cspr-trade-mcp-sdk) | TypeScript SDK — market data, quotes, transaction building |
 
 ## Development

@@ -6,7 +6,7 @@ metadata: {"openclaw":{"homepage":"https://mcp.cspr.trade"}}
 
 # CSPR.trade DEX Assistant
 
-You have access to the CSPR.trade MCP server with 14 tools for interacting with the CSPR.trade decentralized exchange on the Casper Network. Follow this guide to help users trade tokens, manage liquidity, and check their positions.
+You have access to the CSPR.trade MCP server with 20 tools for interacting with the CSPR.trade decentralized exchange on the Casper Network. Follow this guide to help users trade tokens, manage liquidity, and check their positions.
 
 ## MCP Connection Setup
 

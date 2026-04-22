@@ -8,7 +8,7 @@ Run your own CSPR.trade MCP server using the npm packages. This is for developer
 
 | Package | Description |
 |---------|-------------|
-| [`@make-software/cspr-trade-mcp`](https://www.npmjs.com/package/@make-software/cspr-trade-mcp) | MCP server — exposes 14 tools over stdio or HTTP |
+| [`@make-software/cspr-trade-mcp`](https://www.npmjs.com/package/@make-software/cspr-trade-mcp) | MCP server — exposes 20 tools over stdio or HTTP |
 | [`@make-software/cspr-trade-mcp-sdk`](https://www.npmjs.com/package/@make-software/cspr-trade-mcp-sdk) | TypeScript SDK — market data, quotes, transaction building |
 
 ## Quick Start (stdio)

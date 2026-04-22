@@ -1,6 +1,6 @@
 # CSPR.trade MCP Server
 
-> CSPR.trade is a decentralized exchange (DEX) on the Casper Network, forked from Uniswap V2. This MCP server provides 18 tools for market data, trading, liquidity management, trade analysis, account queries, and local transaction signing.
+> CSPR.trade is a decentralized exchange (DEX) on the Casper Network, forked from Uniswap V2. This MCP server provides 20 tools for market data, trading, liquidity management, trade analysis, account queries, and local transaction signing.
 
 ## Protocol Overview
 
@@ -8,7 +8,7 @@ CSPR.trade is an automated market maker (AMM) DEX built on the Casper blockchain
 
 ## MCP Server
 
-The `@make-software/cspr-trade-mcp` server exposes 18 tools over the Model Context Protocol (MCP). It supports stdio transport (local) and HTTP Streamable transport (remote), and wraps the `@make-software/cspr-trade-mcp-sdk` TypeScript SDK.
+The `@make-software/cspr-trade-mcp` server exposes 20 tools over the Model Context Protocol (MCP). It supports stdio transport (local) and HTTP Streamable transport (remote), and wraps the `@make-software/cspr-trade-mcp-sdk` TypeScript SDK.
 
 ### Configuration
 

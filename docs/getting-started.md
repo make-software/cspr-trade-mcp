@@ -10,7 +10,7 @@ A production MCP server is live at:
 https://mcp.cspr.trade/mcp
 ```
 
-This is a Streamable HTTP endpoint on Casper **mainnet**. It exposes 18 tools for market data, swaps, liquidity, trade analysis, and account queries — ready for any MCP-compatible client.
+This is a Streamable HTTP endpoint on Casper **mainnet**. It exposes 20 tools for market data, swaps, liquidity, trade analysis, and account queries — ready for any MCP-compatible client.
 
 Health check: [`https://mcp.cspr.trade/health`](https://mcp.cspr.trade/health)
 
@@ -54,7 +54,7 @@ Install the skill from [ClawHub](https://clawhub.com):
 npx clawhub@latest install cspr-trade-mcp
 ```
 
-This installs a complete agent skill with workflow instructions — intent classification, quote-before-swap patterns, pre-trade analysis, price impact warnings, signing flows, and error handling. Your agent reads it and knows how to use all 18 tools correctly.
+This installs a complete agent skill with workflow instructions — intent classification, quote-before-swap patterns, pre-trade analysis, price impact warnings, signing flows, and error handling. Your agent reads it and knows how to use all 20 tools correctly.
 
 Alternatively, point your agent at the raw SKILL.md:
 
@@ -76,7 +76,7 @@ The server speaks **Streamable HTTP** (the standard MCP HTTP transport). No API 
 
 ## What You Can Do
 
-Once connected, your agent has access to **18 tools**:
+Once connected, your agent has access to **20 tools**:
 
 ### Market Data (read-only, no wallet needed)
 - **`get_tokens`** — List tradable tokens with USD/EUR pricing
@@ -104,6 +104,8 @@ Once connected, your agent has access to **18 tools**:
 - **`get_liquidity_positions`** — View LP positions for any account
 - **`get_impermanent_loss`** — Calculate IL for a position
 - **`get_swap_history`** — Transaction history by account or pair
+- **`get_portfolio_value`** — Aggregate LP positions into CSPR + USD totals
+- **`get_position_status`** — Per-position IL and current token amounts
 
 ### Local Signing
 - **`sign_deploy`** — Sign transactions locally (signer mode only, see [Self-Hosting](/docs/self-hosting))

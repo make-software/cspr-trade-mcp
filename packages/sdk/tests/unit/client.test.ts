@@ -128,6 +128,262 @@ describe('CsprTradeClient', () => {
     expect(Array.isArray(tokens)).toBe(true);
   });
 
+  it('getPortfolioValue with WCSPR as token1 computes CSPR total correctly', async () => {
+    const wcspr = `hash-${WCSPR_HASH}`;
+
+    const position = {
+      accountHash: 'acct',
+      pairContractPackageHash: 'hash-usdt-wcspr',
+      lpTokenBalance: '1000000',
+      lpTokenTotalSupply: '2000000',
+      pair: {
+        token0Symbol: 'USDT',
+        token1Symbol: 'WCSPR',
+        token0PackageHash: 'hash-usdt',
+        token1PackageHash: wcspr,
+        reserve0: '1000000',
+        reserve1: '1000000000',
+        decimals0: 6,
+        decimals1: 9,
+      },
+      poolShare: '50.00',
+      estimatedToken0Amount: '500000',
+      estimatedToken1Amount: '500000000',
+    };
+
+    vi.spyOn(client, 'getLiquidityPositions').mockResolvedValueOnce([position]);
+    // Mock the internal ratesApi to return a USD rate
+    const ratesApi = (client as unknown as { ratesApi: { getCsprRate: ReturnType<typeof vi.fn> } }).ratesApi;
+    vi.spyOn(ratesApi, 'getCsprRate').mockResolvedValueOnce({ price: 0.05 });
+
+    const result = await client.getPortfolioValue('01abc');
+
+    expect(result.positions).toHaveLength(1);
+    expect(result.unpricedPositions).toHaveLength(0);
+    expect(parseFloat(result.totalCsprValue)).toBeGreaterThan(0);
+    expect(result.totalUsdValue).not.toBeNull();
+    expect(parseFloat(result.totalUsdValue!)).toBeGreaterThan(0);
+  });
+
+  it('getPositionStatus returns all positions with IL data', async () => {
+    const positions = [
+      {
+        accountHash: 'acct',
+        pairContractPackageHash: 'hash-pair1',
+        lpTokenBalance: '1000000',
+        lpTokenTotalSupply: '2000000',
+        pair: {
+          token0Symbol: 'WCSPR',
+          token1Symbol: 'USDT',
+          token0PackageHash: `hash-${WCSPR_HASH}`,
+          token1PackageHash: 'hash-usdt',
+          reserve0: '1000000000',
+          reserve1: '1000000',
+          decimals0: 9,
+          decimals1: 6,
+        },
+        poolShare: '50.00',
+        estimatedToken0Amount: '500000000',
+        estimatedToken1Amount: '500000',
+      },
+      {
+        accountHash: 'acct',
+        pairContractPackageHash: 'hash-pair2',
+        lpTokenBalance: '200000',
+        lpTokenTotalSupply: '1000000',
+        pair: {
+          token0Symbol: 'CSPR',
+          token1Symbol: 'USDC',
+          token0PackageHash: `hash-${WCSPR_HASH}`,
+          token1PackageHash: 'hash-usdc',
+          reserve0: '5000000000',
+          reserve1: '5000000',
+          decimals0: 9,
+          decimals1: 6,
+        },
+        poolShare: '20.00',
+        estimatedToken0Amount: '100000000',
+        estimatedToken1Amount: '100000',
+      },
+    ];
+
+    vi.spyOn(client, 'getLiquidityPositions').mockResolvedValueOnce(positions);
+
+    // Mock IL responses
+    const liqApi = (client as unknown as { liquidityApi: { getImpermanentLoss: ReturnType<typeof vi.fn> } }).liquidityApi;
+    vi.spyOn(liqApi, 'getImpermanentLoss')
+      .mockResolvedValueOnce({ value: '-5.25', timestamp: '2026-04-01T00:00:00Z' })
+      .mockResolvedValueOnce({ value: '-2.10', timestamp: '2026-04-02T00:00:00Z' });
+
+    const result = await client.getPositionStatus('01abc');
+
+    expect(result).toHaveLength(2);
+    expect(result[0].impermanentLossValue).toBe('-5.25');
+    expect(result[1].impermanentLossValue).toBe('-2.10');
+    expect(result[0].currentToken0Amount).toBe('500000000');
+  });
+
+  it('getPositionStatus filters by pairContractPackageHash', async () => {
+    const positions = [
+      {
+        accountHash: 'acct',
+        pairContractPackageHash: 'hash-pair1',
+        lpTokenBalance: '1000000',
+        lpTokenTotalSupply: '2000000',
+        pair: {
+          token0Symbol: 'WCSPR',
+          token1Symbol: 'USDT',
+          token0PackageHash: `hash-${WCSPR_HASH}`,
+          token1PackageHash: 'hash-usdt',
+          reserve0: '1000000000',
+          reserve1: '1000000',
+          decimals0: 9,
+          decimals1: 6,
+        },
+        poolShare: '50.00',
+        estimatedToken0Amount: '500000000',
+        estimatedToken1Amount: '500000',
+      },
+      {
+        accountHash: 'acct',
+        pairContractPackageHash: 'hash-pair2',
+        lpTokenBalance: '200000',
+        lpTokenTotalSupply: '1000000',
+        pair: {
+          token0Symbol: 'CSPR',
+          token1Symbol: 'USDC',
+          token0PackageHash: `hash-${WCSPR_HASH}`,
+          token1PackageHash: 'hash-usdc',
+          reserve0: '5000000000',
+          reserve1: '5000000',
+          decimals0: 9,
+          decimals1: 6,
+        },
+        poolShare: '20.00',
+        estimatedToken0Amount: '100000000',
+        estimatedToken1Amount: '100000',
+      },
+    ];
+
+    vi.spyOn(client, 'getLiquidityPositions').mockResolvedValueOnce(positions);
+
+    const liqApi = (client as unknown as { liquidityApi: { getImpermanentLoss: ReturnType<typeof vi.fn> } }).liquidityApi;
+    vi.spyOn(liqApi, 'getImpermanentLoss')
+      .mockResolvedValueOnce({ value: '-5.25', timestamp: '2026-04-01T00:00:00Z' });
+
+    const result = await client.getPositionStatus('01abc', 'hash-pair1');
+
+    expect(result).toHaveLength(1);
+    expect(result[0].pairContractPackageHash).toBe('hash-pair1');
+  });
+
+  it('getPositionStatus handles IL fetch failure gracefully — other positions returned', async () => {
+    const positions = [
+      {
+        accountHash: 'acct',
+        pairContractPackageHash: 'hash-pair1',
+        lpTokenBalance: '1000000',
+        lpTokenTotalSupply: '2000000',
+        pair: {
+          token0Symbol: 'WCSPR',
+          token1Symbol: 'USDT',
+          token0PackageHash: `hash-${WCSPR_HASH}`,
+          token1PackageHash: 'hash-usdt',
+          reserve0: '1000000000',
+          reserve1: '1000000',
+          decimals0: 9,
+          decimals1: 6,
+        },
+        poolShare: '50.00',
+        estimatedToken0Amount: '500000000',
+        estimatedToken1Amount: '500000',
+      },
+      {
+        accountHash: 'acct',
+        pairContractPackageHash: 'hash-pair2',
+        lpTokenBalance: '200000',
+        lpTokenTotalSupply: '1000000',
+        pair: {
+          token0Symbol: 'CSPR',
+          token1Symbol: 'USDC',
+          token0PackageHash: `hash-${WCSPR_HASH}`,
+          token1PackageHash: 'hash-usdc',
+          reserve0: '5000000000',
+          reserve1: '5000000',
+          decimals0: 9,
+          decimals1: 6,
+        },
+        poolShare: '20.00',
+        estimatedToken0Amount: '100000000',
+        estimatedToken1Amount: '100000',
+      },
+    ];
+
+    vi.spyOn(client, 'getLiquidityPositions').mockResolvedValueOnce(positions);
+
+    const liqApi = (client as unknown as { liquidityApi: { getImpermanentLoss: ReturnType<typeof vi.fn> } }).liquidityApi;
+    vi.spyOn(liqApi, 'getImpermanentLoss')
+      .mockResolvedValueOnce({ value: '-5.25', timestamp: '2026-04-01T00:00:00Z' })
+      .mockRejectedValueOnce(new Error('IL service unavailable'));
+
+    const result = await client.getPositionStatus('01abc');
+
+    expect(result).toHaveLength(2);
+    expect(result[0].impermanentLossValue).toBe('-5.25');
+    expect(result[1].impermanentLossValue).toBe('0');
+  });
+
+  it('getPositionStatus fetches IL in parallel (Promise.all)', async () => {
+    const positions = Array.from({ length: 3 }, (_, i) => ({
+      accountHash: 'acct',
+      pairContractPackageHash: `hash-pair${i}`,
+      lpTokenBalance: '1000000',
+      lpTokenTotalSupply: '2000000',
+      pair: {
+        token0Symbol: 'WCSPR',
+        token1Symbol: 'USDT',
+        token0PackageHash: `hash-${WCSPR_HASH}`,
+        token1PackageHash: 'hash-usdt',
+        reserve0: '1000000000',
+        reserve1: '1000000',
+        decimals0: 9,
+        decimals1: 6,
+      },
+      poolShare: '33.33',
+      estimatedToken0Amount: '333000000',
+      estimatedToken1Amount: '333000',
+    }));
+
+    vi.spyOn(client, 'getLiquidityPositions').mockResolvedValueOnce(positions);
+
+    const callOrder: number[] = [];
+    const liqApi = (client as unknown as { liquidityApi: { getImpermanentLoss: ReturnType<typeof vi.fn> } }).liquidityApi;
+    vi.spyOn(liqApi, 'getImpermanentLoss').mockImplementation(async (_pub, pairHash) => {
+      const idx = parseInt((pairHash as string).replace('hash-pair', ''));
+      // Reverse delay order — parallel execution resolves in any order
+      await new Promise(r => setTimeout(r, (2 - idx) * 10));
+      callOrder.push(idx);
+      return { value: `-${idx}.00`, timestamp: '2026-04-01T00:00:00Z' };
+    });
+
+    const start = Date.now();
+    const result = await client.getPositionStatus('01abc');
+    const elapsed = Date.now() - start;
+
+    expect(result).toHaveLength(3);
+    // Parallel: all 3 IL fetches run concurrently, total < 60ms (not 3×20ms serial)
+    expect(elapsed).toBeLessThan(60);
+    // All positions returned
+    expect(result.map(r => r.pairContractPackageHash)).toEqual(['hash-pair0', 'hash-pair1', 'hash-pair2']);
+  });
+
+  it('getUnrealizedPnL delegates to getPositionStatus', async () => {
+    vi.spyOn(client, 'getPositionStatus').mockResolvedValueOnce([]);
+    const result = await client.getUnrealizedPnL('01abc');
+    expect(result).toEqual([]);
+    expect(client.getPositionStatus).toHaveBeenCalledWith('01abc', undefined);
+  });
+
   it('should expose getQuote method', async () => {
     // First call: getTokens for resolution (WCSPR gets transformed to CSPR)
     vi.mocked(fetch).mockResolvedValueOnce(

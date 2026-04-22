@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.3.1] - 2026-04-21
+## [0.3.2] - 2026-04-21
+
+### Changed
+- Renamed `get_pnl` MCP tool to `get_position_status` — accurately reflects that the tool returns current IL and token amounts, not cost-basis PnL
+- Renamed `getUnrealizedPnL` SDK method to `getPositionStatus` (old name kept as `@deprecated` alias)
+- Added `PositionStatus` type (replaces `UnrealizedPnL`, kept as deprecated alias)
+
+### Fixed
+- `getPositionStatus` now fetches impermanent loss for all positions in parallel with `Promise.all` instead of sequentially
 
 ### Fixed
 - `getPortfolioValue`: non-WCSPR LP positions (e.g. USDT/USDC) are now returned in a separate `unpricedPositions` list instead of being silently excluded from portfolio totals
@@ -58,7 +66,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Claude Code SKILL.md for guided DEX interactions
 - `llms.txt` for LLM-readable documentation
 
-[Unreleased]: https://github.com/make-software/cspr-trade-mcp/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/make-software/cspr-trade-mcp/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/make-software/cspr-trade-mcp/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/make-software/cspr-trade-mcp/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/make-software/cspr-trade-mcp/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/make-software/cspr-trade-mcp/compare/v0.1.0...v0.2.0

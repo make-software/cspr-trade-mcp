@@ -1,5 +1,5 @@
-import casperSdk from 'casper-js-sdk';
-import type { Args } from 'casper-js-sdk';
+import * as casperSdk from 'casper-js-sdk';
+import type { Args as CasperArgs } from 'casper-js-sdk';
 
 const { Args, CLValue, Key } = casperSdk;
 
@@ -25,7 +25,7 @@ export type AddLiquidityInnerArgsParams =
       deadline: number;
     };
 
-export function buildAddLiquidityInnerArgs(params: AddLiquidityInnerArgsParams): Args {
+export function buildAddLiquidityInnerArgs(params: AddLiquidityInnerArgsParams): CasperArgs {
   if (params.isCSPRPair) {
     return Args.fromMap({
       token: CLValue.newCLKey(Key.newKey(params.tokenHash)),
@@ -37,15 +37,16 @@ export function buildAddLiquidityInnerArgs(params: AddLiquidityInnerArgsParams):
     });
   }
 
+  const tokenPairParams = params;
   return Args.fromMap({
-    token_a: CLValue.newCLKey(Key.newKey(params.tokenAHash)),
-    token_b: CLValue.newCLKey(Key.newKey(params.tokenBHash)),
-    amount_a_desired: CLValue.newCLUInt256(params.amountADesired),
-    amount_b_desired: CLValue.newCLUInt256(params.amountBDesired),
-    amount_a_min: CLValue.newCLUInt256(params.amountAMin),
-    amount_b_min: CLValue.newCLUInt256(params.amountBMin),
-    to: CLValue.newCLKey(Key.newKey(params.accountHash)),
-    deadline: CLValue.newCLUint64(params.deadline),
+    token_a: CLValue.newCLKey(Key.newKey(tokenPairParams.tokenAHash)),
+    token_b: CLValue.newCLKey(Key.newKey(tokenPairParams.tokenBHash)),
+    amount_a_desired: CLValue.newCLUInt256(tokenPairParams.amountADesired),
+    amount_b_desired: CLValue.newCLUInt256(tokenPairParams.amountBDesired),
+    amount_a_min: CLValue.newCLUInt256(tokenPairParams.amountAMin),
+    amount_b_min: CLValue.newCLUInt256(tokenPairParams.amountBMin),
+    to: CLValue.newCLKey(Key.newKey(tokenPairParams.accountHash)),
+    deadline: CLValue.newCLUint64(tokenPairParams.deadline),
   });
 }
 
@@ -70,7 +71,7 @@ export type RemoveLiquidityInnerArgsParams =
       deadline: number;
     };
 
-export function buildRemoveLiquidityInnerArgs(params: RemoveLiquidityInnerArgsParams): Args {
+export function buildRemoveLiquidityInnerArgs(params: RemoveLiquidityInnerArgsParams): CasperArgs {
   if (params.isCSPRPair) {
     return Args.fromMap({
       token: CLValue.newCLKey(Key.newKey(params.tokenHash)),
@@ -82,13 +83,14 @@ export function buildRemoveLiquidityInnerArgs(params: RemoveLiquidityInnerArgsPa
     });
   }
 
+  const tokenPairParams = params;
   return Args.fromMap({
-    token_a: CLValue.newCLKey(Key.newKey(params.tokenAHash)),
-    token_b: CLValue.newCLKey(Key.newKey(params.tokenBHash)),
-    liquidity: CLValue.newCLUInt256(params.liquidity),
-    amount_a_min: CLValue.newCLUInt256(params.amountAMin),
-    amount_b_min: CLValue.newCLUInt256(params.amountBMin),
-    to: CLValue.newCLKey(Key.newKey(params.accountHash)),
-    deadline: CLValue.newCLUint64(params.deadline),
+    token_a: CLValue.newCLKey(Key.newKey(tokenPairParams.tokenAHash)),
+    token_b: CLValue.newCLKey(Key.newKey(tokenPairParams.tokenBHash)),
+    liquidity: CLValue.newCLUInt256(tokenPairParams.liquidity),
+    amount_a_min: CLValue.newCLUInt256(tokenPairParams.amountAMin),
+    amount_b_min: CLValue.newCLUInt256(tokenPairParams.amountBMin),
+    to: CLValue.newCLKey(Key.newKey(tokenPairParams.accountHash)),
+    deadline: CLValue.newCLUint64(tokenPairParams.deadline),
   });
 }

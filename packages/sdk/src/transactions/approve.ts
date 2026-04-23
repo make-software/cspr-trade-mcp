@@ -1,5 +1,5 @@
-import casperSdk from 'casper-js-sdk';
-import type { Args } from 'casper-js-sdk';
+import * as casperSdk from 'casper-js-sdk';
+import type { Args as CasperArgs } from 'casper-js-sdk';
 
 const { Args, CLValue, Key } = casperSdk;
 
@@ -8,7 +8,7 @@ export interface ApproveArgsParams {
   amount: string;
 }
 
-export function buildApproveArgs(params: ApproveArgsParams): Args {
+export function buildApproveArgs(params: ApproveArgsParams): CasperArgs {
   return Args.fromMap({
     spender: CLValue.newCLKey(Key.newKey(params.spenderPackageHash)),
     amount: CLValue.newCLUInt256(params.amount),

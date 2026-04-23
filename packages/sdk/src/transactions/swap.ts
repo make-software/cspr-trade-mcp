@@ -1,5 +1,5 @@
-import casperSdk from 'casper-js-sdk';
-import type { Args, CLValue } from 'casper-js-sdk';
+import * as casperSdk from 'casper-js-sdk';
+import type { Args as CasperArgs, CLValue as CasperCLValue } from 'casper-js-sdk';
 import type { QuoteType } from '../types/index.js';
 
 const { Args, CLTypeKey, CLValue, Key } = casperSdk;
@@ -31,7 +31,7 @@ export interface SwapInnerArgsParams {
   amountOutMin: string;
 }
 
-export function buildSwapInnerArgs(params: SwapInnerArgsParams): Args {
+export function buildSwapInnerArgs(params: SwapInnerArgsParams): CasperArgs {
   const {
     isFirstTokenNative, isSecondTokenNative, quoteType,
     path, accountHash, deadline,
@@ -40,7 +40,7 @@ export function buildSwapInnerArgs(params: SwapInnerArgsParams): Args {
 
   const isBothNotNative = !isFirstTokenNative && !isSecondTokenNative;
 
-  const argsMap: Record<string, CLValue> = {
+  const argsMap: Record<string, CasperCLValue> = {
     path: CLValue.newCLList(
       CLTypeKey,
       path.map(hash => CLValue.newCLKey(Key.newKey(hash))),

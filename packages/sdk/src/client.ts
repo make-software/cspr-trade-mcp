@@ -1,4 +1,4 @@
-import casperSdk from 'casper-js-sdk';
+import * as casperSdk from 'casper-js-sdk';
 
 import { HttpClient } from './api/http.js';
 import { TokensApi } from './api/tokens.js';

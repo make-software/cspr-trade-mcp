@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { readFile } from 'node:fs/promises';
-import casperSdk from 'casper-js-sdk';
+import * as casperSdk from 'casper-js-sdk';
 import * as bip39 from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english';
 import { HDKey } from '@scure/bip32';

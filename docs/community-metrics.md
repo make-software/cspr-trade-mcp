@@ -1,22 +1,22 @@
 # CSPR.trade MCP — Community Metrics
 
-_Last updated: 2026-04-22_
+_Last updated: 2026-04-23_
 
 ## npm Downloads (last 30 days)
 
-| Package | 2026-04-21 | 2026-04-22 |
-|---------|-----------|-----------|
-| `@make-software/cspr-trade-mcp` | 166 | 167 |
-| `@make-software/cspr-trade-mcp-sdk` | 157 | 158 |
+| Package | 2026-04-21 | 2026-04-22 | 2026-04-23 |
+|---------|-----------|-----------|-----------|
+| `@make-software/cspr-trade-mcp` | 166 | 167 | 167 |
+| `@make-software/cspr-trade-mcp-sdk` | 157 | 158 | 158 |
 
 ## GitHub (make-software/cspr-trade-mcp)
 
-| Metric | 2026-04-21 | 2026-04-22 |
-|--------|-----------|-----------|
-| Stars | 1 | 1 |
-| Forks | 0 | 0 |
-| Open Issues | 0 | 0 |
-| Watchers | 1 | 1 |
+| Metric | 2026-04-21 | 2026-04-22 | 2026-04-23 |
+|--------|-----------|-----------|-----------|
+| Stars | 1 | 1 | 1 |
+| Forks | 0 | 0 | 0 |
+| Open Issues | 0 | 0 | 0 |
+| Watchers | 1 | 1 | 1 |
 
 ## Glama.ai Listing
 
@@ -38,7 +38,7 @@ curl -s 'https://api.github.com/repos/make-software/cspr-trade-mcp' | python3 -c
 
 ## Notes
 
-- Downloads growing very slowly (+1/day organic) — no announcement campaign yet
+- Downloads growing very slowly (flat at 167/158 today) — no announcement campaign yet
 - GitHub stars stagnant at 1 — repo is not prominently linked from CSPR.trade UI
-- Decision #187 pending: how to implement SDK price history (no CSPR.trade OHLCV API exists)
-- Next action after Decision #187: community announcement campaign via X, dev.to, Casper Discord
+- Decision #187 approved: do not derive OHLCV client-side; request official API from CSPR.trade team (task #900)
+- Task #881 (community growth announcement) blocked pending social media approval (STANDING-ORDERS)

@@ -1,26 +1,23 @@
 import { hexToBytes } from '@noble/hashes/utils';
-import * as casperSdk from 'casper-js-sdk';
-import type { Args as CasperArgs, CLValue as CasperCLValue } from 'casper-js-sdk';
-
-const { Args, CLTypeUInt8, CLValue } = casperSdk;
+import { Args, CLTypeUInt8, CLValue } from 'casper-js-sdk';
 
 export interface ProxyWasmArgsParams {
   routerPackageHash: string;  // hex without 'hash-' prefix
   entryPoint: string;
-  innerArgs: CasperArgs;
+  innerArgs: Args;
   attachedValue: string;       // motes as string
 }
 
-export function serializeInnerArgs(args: CasperArgs): Uint8Array {
+export function serializeInnerArgs(args: Args): Uint8Array {
   return args.toBytes();
 }
 
-export function buildProxyWasmArgs(params: ProxyWasmArgsParams): CasperArgs {
+export function buildProxyWasmArgs(params: ProxyWasmArgsParams): Args {
   const { routerPackageHash, entryPoint, innerArgs, attachedValue } = params;
 
   const rawArgsBytes = serializeInnerArgs(innerArgs);
 
-  const argsBytes: CasperCLValue[] = [];
+  const argsBytes: CLValue[] = [];
   for (let i = 0; i < rawArgsBytes.length; i++) {
     argsBytes.push(CLValue.newCLUint8(rawArgsBytes[i]));
   }

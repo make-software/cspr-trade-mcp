@@ -1,16 +1,14 @@
-import * as casperSdk from 'casper-js-sdk';
-import type { Args as CasperArgs, Transaction as CasperTransaction } from 'casper-js-sdk';
+import { SessionBuilder, ContractCallBuilder, PublicKey } from 'casper-js-sdk';
+import type { Args, Transaction } from 'casper-js-sdk';
 import type { NetworkConfig } from '../config.js';
-
-const { SessionBuilder, ContractCallBuilder, PublicKey } = casperSdk;
 
 export function buildWasmTransaction(params: {
   publicKey: string;
   paymentAmount: string;
   wasmBinary: Uint8Array;
-  runtimeArgs: CasperArgs;
+  runtimeArgs: Args;
   networkConfig: NetworkConfig;
-}): CasperTransaction {
+}): Transaction {
   const { publicKey, paymentAmount, wasmBinary, runtimeArgs, networkConfig } = params;
   return new SessionBuilder()
     .from(PublicKey.fromHex(publicKey))
@@ -28,9 +26,9 @@ export function buildContractCallTransaction(params: {
   paymentAmount: string;
   contractPackageHash: string;
   entryPoint: string;
-  runtimeArgs: CasperArgs;
+  runtimeArgs: Args;
   networkConfig: NetworkConfig;
-}): CasperTransaction {
+}): Transaction {
   const { publicKey, paymentAmount, contractPackageHash, entryPoint, runtimeArgs, networkConfig } = params;
   const hash = contractPackageHash.replace('hash-', '');
   return new ContractCallBuilder()

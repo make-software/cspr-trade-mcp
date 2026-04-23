@@ -5,7 +5,7 @@ Casper just upgraded to v2.2.0 mainnet 🎉
 
 To celebrate: CSPR.trade MCP is live.
 
-Your AI agent can now query prices, build swaps, and manage liquidity on @CasperNetwork's leading DEX — one endpoint, 21 tools, non-custodial.
+Your AI agent can now query prices, fetch candles, build swaps, and manage liquidity on @CasperNetwork's leading DEX — one endpoint, 22 public tools, non-custodial.
 
 mcp.cspr.trade
 
@@ -25,12 +25,14 @@ One line of config:
 That's it. Claude Desktop, Cursor, or any MCP client — your agent now talks to Casper DeFi.
 
 ## Tweet 3
-14 MCP tools:
+22 public MCP tools:
 
-📊 Market data — token prices, pair stats, swap quotes
+📊 Market data + price history — tokens, pairs, quotes, candles
 💱 Trading — build swaps + approvals, submit transactions  
-💧 Liquidity — add/remove LP, check positions, calc IL
-🔏 Non-custodial — transactions built remote, signed local
+💧 Liquidity + portfolio — add/remove LP, balances, positions, status
+🧠 Trade analysis — impact, slippage, recommendations before execution
+
+Optional local signer adds `sign_deploy` for a 23-tool full setup.
 
 ## Tweet 4
 Want testnet or self-hosted?
@@ -46,7 +48,7 @@ Using @OpenClawAI? One command:
 
 npx clawhub install cspr-trade-mcp
 
-Your agent gets the full playbook — when to quote, when to warn on slippage, how to sign locally. Not just tools — behavior.
+Your agent gets the full playbook — when to quote, when to warn on slippage, how to use price history, how to sign locally. Not just tools — behavior.
 
 clawhub.com/skills/cspr-trade-mcp
 
@@ -57,4 +59,4 @@ github.com/make-software/cspr-trade-mcp
 
 Building an agent that needs Casper DeFi access? Connect the endpoint, install the skill, and go.
 
-Happy to help → drop a reply or open an issue 🔧
+Drop a reply or open an issue 🔧

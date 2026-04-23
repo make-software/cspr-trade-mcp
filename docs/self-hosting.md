@@ -8,8 +8,8 @@ Run your own CSPR.trade MCP server using the npm packages. This is for developer
 
 | Package | Description |
 |---------|-------------|
-| [`@make-software/cspr-trade-mcp`](https://www.npmjs.com/package/@make-software/cspr-trade-mcp) | MCP server — exposes 21 tools over stdio or HTTP |
-| [`@make-software/cspr-trade-mcp-sdk`](https://www.npmjs.com/package/@make-software/cspr-trade-mcp-sdk) | TypeScript SDK — market data, quotes, transaction building |
+| [`@make-software/cspr-trade-mcp`](https://www.npmjs.com/package/@make-software/cspr-trade-mcp) | MCP server — exposes 22 public tools over stdio or HTTP |
+| [`@make-software/cspr-trade-mcp-sdk`](https://www.npmjs.com/package/@make-software/cspr-trade-mcp-sdk) | TypeScript SDK — market data, price history, quotes, analysis, and transaction building |
 
 ## Quick Start (stdio)
 
@@ -38,8 +38,7 @@ Add to `.claude.json`:
 For remote agents or shared deployments, run as an HTTP server:
 
 ```bash
-CSPR_TRADE_NETWORK=mainnet CSPR_TRADE_TRANSPORT=http CSPR_TRADE_PORT=3001 \
-  npx @make-software/cspr-trade-mcp
+CSPR_TRADE_NETWORK=mainnet CSPR_TRADE_TRANSPORT=http CSPR_TRADE_PORT=3001   npx @make-software/cspr-trade-mcp
 ```
 
 Point any MCP client at `http://your-host:3001/mcp`.
@@ -67,6 +66,11 @@ A separate, local-only MCP instance that signs deploys without exposing private 
 
 Agent flow: `build_swap` (remote) → `sign_deploy` (local) → `submit_transaction` (remote). Private key never leaves your machine.
 
+### Tool counts by setup
+
+- **Main server only:** 22 public tools
+- **Main server + signer:** 23 total tools
+
 ### Key Sources
 
 | Source | Env Variable | Description |
@@ -88,6 +92,17 @@ Supports Ed25519 and Secp256k1 key algorithms.
 | `CSPR_TRADE_TRANSPORT` | `stdio` | `stdio` or `http` |
 | `CSPR_TRADE_HOST` | `0.0.0.0` | HTTP listen host |
 | `CSPR_TRADE_PORT` | `3000` | HTTP listen port |
+| `CSPR_TRADE_ALLOWED_HOSTS` | unset | Optional comma-separated allowed hostnames for HTTP transport |
+| `CSPR_TRADE_RATE_LIMIT_WINDOW_MS` | `60000` | HTTP rate-limit window |
+| `CSPR_TRADE_RATE_LIMIT_MAX` | `60` | Max requests per rate-limit window |
+
+### Signer
+
+| Variable | Description |
+|----------|-------------|
+| `CSPR_TRADE_KEY_PATH` | Path to PEM private key file |
+| `CSPR_TRADE_KEY_PEM` | PEM key content (inline) |
+| `CSPR_TRADE_MNEMONIC` | BIP-39 mnemonic phrase |
 
 ## Production Deployment
 
@@ -105,9 +120,7 @@ cd cspr-trade-mcp
 npm install && npm run build
 
 # Start the service
-CSPR_TRADE_NETWORK=mainnet CSPR_TRADE_TRANSPORT=http \
-  CSPR_TRADE_HOST=127.0.0.1 CSPR_TRADE_PORT=3010 \
-  node packages/mcp/dist/index.js
+CSPR_TRADE_NETWORK=mainnet CSPR_TRADE_TRANSPORT=http   CSPR_TRADE_HOST=127.0.0.1 CSPR_TRADE_PORT=3010   node packages/mcp/dist/index.js
 ```
 
 Put nginx in front with TLS (see `deploy/nginx/mcp.cspr.trade.conf` for a template).

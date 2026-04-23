@@ -10,7 +10,7 @@ A production MCP server is live at:
 https://mcp.cspr.trade/mcp
 ```
 
-This is a Streamable HTTP endpoint on Casper **mainnet**. It exposes 21 tools for market data, swaps, liquidity, trade analysis, and account queries — ready for any MCP-compatible client.
+This is a Streamable HTTP endpoint on Casper **mainnet**. It exposes **22 public tools** for market data, price history, swaps, liquidity, trade analysis, and account queries — ready for any MCP-compatible client.
 
 Health check: [`https://mcp.cspr.trade/health`](https://mcp.cspr.trade/health)
 
@@ -30,7 +30,7 @@ Add to your MCP settings (`.claude.json` or Claude Desktop config):
 }
 ```
 
-That's it. Claude can now check token prices, get swap quotes, and explore liquidity pools on Casper.
+That's it. Claude can now check token prices, fetch price history, get swap quotes, and explore liquidity pools on Casper.
 
 ### Cursor
 
@@ -54,7 +54,7 @@ Install the skill from [ClawHub](https://clawhub.com):
 npx clawhub@latest install cspr-trade-mcp
 ```
 
-This installs a complete agent skill with workflow instructions — intent classification, quote-before-swap patterns, pre-trade analysis, price impact warnings, signing flows, and error handling. Your agent reads it and knows how to use all 21 tools correctly.
+This installs a complete agent skill with workflow instructions — intent classification, quote-before-swap patterns, pre-trade analysis, price-impact warnings, signing flows, price-history lookups, and error handling. Your agent reads it and knows how to use all **22 public tools** correctly.
 
 Alternatively, point your agent at the raw SKILL.md:
 
@@ -76,19 +76,21 @@ The server speaks **Streamable HTTP** (the standard MCP HTTP transport). No API 
 
 ## What You Can Do
 
-Once connected, your agent has access to **21 tools**:
+Once connected, your agent has access to **22 public tools**:
 
 ### Market Data (read-only, no wallet needed)
-- **`get_tokens`** — List tradable tokens with USD/EUR pricing
+- **`get_tokens`** — List tradable tokens with optional fiat pricing
 - **`get_pairs`** — Browse trading pairs with reserves and stats
 - **`get_pair_details`** — Deep dive into a specific pair
-- **`get_quote`** — Get swap quotes with routing, price impact, slippage
+- **`get_quote`** — Get swap quotes with routing, price impact, and slippage
 - **`get_currencies`** — Available fiat currencies for pricing
+- **`get_pair_price_history`** — OHLCV candlestick history for a specific pair
+- **`get_token_price_history`** — OHLCV history for a token via its primary trading pair
 
 ### Trade Analysis (read-only, no wallet needed)
 - **`estimate_price_impact`** — Check how much your trade moves the price before executing
 - **`estimate_slippage`** — Get expected output and recommended slippage tolerance
-- **`analyze_trade`** — Full pre-trade analysis with actionable recommendation (proceed/caution/high_risk/not_recommended)
+- **`analyze_trade`** — Full pre-trade analysis with actionable recommendation (`proceed`, `caution`, `high_risk`, `not_recommended`)
 - **`optimal_liquidity_amounts`** — Calculate optimal paired token amounts for LP deposits
 
 ### Trading (requires a Casper wallet)
@@ -101,15 +103,17 @@ Once connected, your agent has access to **21 tools**:
 - **`build_remove_liquidity`** — Build a remove-liquidity transaction
 
 ### Account
-- **`get_token_balance`** — CEP-18 fungible token balances for an account (filter by symbol/name/hash)
+- **`get_token_balance`** — CEP-18 fungible token balances for an account
 - **`get_liquidity_positions`** — View LP positions for any account
 - **`get_impermanent_loss`** — Calculate IL for a position
-- **`get_swap_history`** — Transaction history by account or pair
-- **`get_portfolio_value`** — Aggregate LP positions into CSPR + USD totals
+- **`get_swap_history`** — Transaction history by public key or pair
+- **`get_portfolio_value`** — Aggregate LP positions into estimated CSPR + fiat totals
 - **`get_position_status`** — Per-position IL and current token amounts
 
-### Local Signing
-- **`sign_deploy`** — Sign transactions locally (signer mode only, see [Self-Hosting](/docs/self-hosting))
+### Optional Local Signing (+1 tool in signer mode)
+- **`sign_deploy`** — Sign transactions locally in a separate signer-only MCP instance
+
+That full two-server setup gives your agent **23 total tools**.
 
 ## Try It Now
 
@@ -121,6 +125,8 @@ Ask your agent:
 
 > "Show me the top liquidity pools by reserves"
 
+> "Show me 7 daily candles for sCSPR"
+
 > "Analyze a trade of 500,000 CSPR to USDT — is it safe?"
 
 Market data and trade analysis queries work immediately — no wallet needed.
@@ -130,10 +136,10 @@ Market data and trade analysis queries work immediately — no wallet needed.
 When executing trades, the MCP server **never** handles private keys. The flow is:
 
 1. **Agent** calls `build_swap` → gets unsigned transaction JSON
-2. **You** sign the transaction with your own key (locally or via a separate signer)
+2. **You or a local signer** sign the transaction on your machine
 3. **Agent** calls `submit_transaction` with the signed transaction
 
-Your private key never touches the MCP server or the network.
+If you configure a separate `cspr-signer` MCP instance, the agent can call `sign_deploy` automatically without ever seeing the private key.
 
 ## Next Steps
 

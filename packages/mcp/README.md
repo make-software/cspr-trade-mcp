@@ -1,6 +1,6 @@
 # @make-software/cspr-trade-mcp
 
-MCP (Model Context Protocol) server for [CSPR.trade](https://cspr.trade), a Uniswap V2 DEX on the Casper Network. Connects AI agents and LLMs to on-chain DeFi — market data, swaps, liquidity, and local transaction signing.
+MCP (Model Context Protocol) server for [CSPR.trade](https://cspr.trade), a Uniswap V2 DEX on the Casper Network. Connects AI agents and LLMs to on-chain DeFi — market data, price history, swaps, liquidity, trade analysis, account queries, and optional local transaction signing.
 
 Supports **stdio** (local, e.g. Claude Code) and **HTTP** (remote, Streamable HTTP) transports.
 
@@ -31,8 +31,7 @@ Add to `.claude.json`:
 ### HTTP (remote agents)
 
 ```bash
-CSPR_TRADE_NETWORK=testnet CSPR_TRADE_TRANSPORT=http CSPR_TRADE_PORT=3001 \
-  npx @make-software/cspr-trade-mcp
+CSPR_TRADE_NETWORK=testnet CSPR_TRADE_TRANSPORT=http CSPR_TRADE_PORT=3001   npx @make-software/cspr-trade-mcp
 ```
 
 Point any MCP client at `http://your-host:3001/mcp`.
@@ -41,23 +40,10 @@ The HTTP transport also exposes a health endpoint at `/health`.
 
 ### Public production endpoint
 
-The intended public mainnet endpoint is:
-
 - MCP: `https://mcp.cspr.trade/mcp`
 - Health: `https://mcp.cspr.trade/health`
 
-Expected health response:
-
-```json
-{"status":"ok","version":"0.1.0","network":"mainnet","transport":"http"}
-```
-
-Deployment examples are included here:
-
-- `deploy/systemd/cspr-trade-mcp.service`
-- `deploy/nginx/mcp.cspr.trade.conf`
-
-### Local signer (--signer mode)
+### Local signer (`--signer` mode)
 
 A separate, local-only MCP instance that signs deploys without exposing private keys to the network or the LLM.
 
@@ -76,7 +62,12 @@ A separate, local-only MCP instance that signs deploys without exposing private 
 }
 ```
 
-Agent flow: `build_swap` (remote) -> `sign_deploy` (local) -> `submit_transaction` (remote). Private key never leaves the machine.
+Agent flow: `build_swap` → `sign_deploy` → `submit_transaction`.
+
+## Tool counts
+
+- **Main server only:** 22 public tools
+- **Main server + signer:** 23 total tools
 
 ## Tools
 
@@ -85,10 +76,12 @@ Agent flow: `build_swap` (remote) -> `sign_deploy` (local) -> `submit_transactio
 | Tool | Description |
 |------|-------------|
 | `get_tokens` | List tradable tokens with optional fiat pricing |
-| `get_pairs` | List trading pairs with reserves, pagination, sorting |
+| `get_pairs` | List trading pairs with reserves, pagination, and sorting |
 | `get_pair_details` | Detailed info for a specific pair |
-| `get_quote` | Swap quote with routing path, price impact, slippage |
+| `get_quote` | Swap quote with routing path, price impact, and slippage |
 | `get_currencies` | Supported fiat currencies |
+| `get_pair_price_history` | OHLCV candle history for a specific pair |
+| `get_token_price_history` | OHLCV candle history for a token via its primary pair |
 
 ### Trading
 
@@ -105,113 +98,39 @@ Agent flow: `build_swap` (remote) -> `sign_deploy` (local) -> `submit_transactio
 | `build_add_liquidity` | Build unsigned add-liquidity transaction |
 | `build_remove_liquidity` | Build unsigned remove-liquidity transaction |
 
-### Account
+### Account / Portfolio
 
 | Tool | Description |
 |------|-------------|
+| `get_token_balance` | CEP-18 token balances for an account |
 | `get_liquidity_positions` | Liquidity positions for an account |
 | `get_impermanent_loss` | Impermanent loss for a position |
-| `get_swap_history` | Swap history, filterable by account or pair |
+| `get_swap_history` | Swap history, filterable by public key or pair |
+| `get_portfolio_value` | Aggregate LP portfolio value across positions |
+| `get_position_status` | Current token amounts and IL per position |
 
 ### Trade Analysis
 
 | Tool | Description |
 |------|-------------|
-| `estimate_price_impact` | Estimate price impact before a swap — severity classification, execution vs. spot price |
+| `estimate_price_impact` | Estimate price impact before a swap |
 | `estimate_slippage` | Estimate expected output and recommended slippage tolerance |
-| `analyze_trade` | Comprehensive pre-trade analysis: impact + slippage + actionable recommendation |
+| `analyze_trade` | Comprehensive pre-trade analysis with recommendation |
 | `optimal_liquidity_amounts` | Calculate optimal paired token amount for LP deposits |
 
-### Signer (--signer mode only)
+### Signer (`--signer` mode only)
 
 | Tool | Description |
 |------|-------------|
 | `sign_deploy` | Sign an unsigned deploy locally |
 
-## Tool Details
+## Key parameter notes
 
-### get_quote
-
-```
-token_in:  "CSPR"          # Symbol, name, or contract hash
-token_out: "USDT"
-amount:    "1000"           # Human-readable
-type:      "exact_in"       # or "exact_out"
-```
-
-Returns quote with path, price impact, execution price, and recommended slippage.
-
-### build_swap
-
-```
-token_in:          "CSPR"
-token_out:         "USDT"
-amount:            "1000"
-type:              "exact_in"
-sender_public_key: "01abc..."
-slippage_bps:      300        # Optional, default 3%
-deadline_minutes:  20         # Optional, default 20
-```
-
-Returns unsigned deploy JSON, human-readable summary, and safety warnings (high price impact, excessive slippage).
-
-### estimate_price_impact
-
-```
-token_in:  "CSPR"          # Input token symbol
-token_out: "USDT"          # Output token symbol
-amount:    "50000"         # Human-readable input amount
-```
-
-Returns: Price impact percentage, severity (low/medium/high/very_high), execution price, spot price, and optional warning.
-
-### estimate_slippage
-
-```
-token_in:               "CSPR"
-token_out:              "USDT"
-amount:                 "10000"
-slippage_tolerance_bps: 300    # Optional, default 3%
-```
-
-Returns: Expected output, minimum output at given tolerance, actual slippage in bps, recommended tolerance. Warns if expected slippage exceeds your tolerance.
-
-### analyze_trade
-
-```
-token_in:               "CSPR"
-token_out:              "USDT"
-amount:                 "500000"
-slippage_tolerance_bps: 300    # Optional
-```
-
-Returns: Combined price impact + slippage analysis, recommendation (proceed/caution/high_risk/not_recommended), human-readable recommendation text, and all warnings. **Use this before large swaps.**
-
-### optimal_liquidity_amounts
-
-```
-token_a:  "CSPR"
-token_b:  "USDT"
-amount_a: "100000"         # Amount of token A to deposit
-```
-
-Returns: Optimal paired amount of token B, estimated pool share percentage, and whether this creates a new pool.
-
-### sign_deploy
-
-```
-deploy_json:    '{"hash":"...","header":{...},"approvals":[]}'
-key_source:     "pem_file"   # or "pem_env" or "mnemonic"
-algorithm:      "ed25519"    # Optional, default ed25519
-mnemonic_index: 0            # Optional, for HD wallet derivation
-```
-
-Key sources:
-- **`pem_file`** — reads PEM from file at `CSPR_TRADE_KEY_PATH`
-- **`pem_env`** — reads PEM content from `CSPR_TRADE_KEY_PEM` env var
-- **`mnemonic`** — derives key from BIP-39 phrase in `CSPR_TRADE_MNEMONIC` (BIP-44 path `m/44'/506'/0'/0/{index}`)
-
-Supports Ed25519 and Secp256k1 key algorithms.
+- `get_swap_history` uses `public_key`, not `account_hash`
+- `get_token_balance` uses `account_public_key` and optionally `token`
+- `build_swap` supports optional `token_in_balance`
+- `build_add_liquidity` supports optional `token_a_balance` and `token_b_balance`
+- `sign_deploy` accepts either inline deploy JSON or a file path
 
 ## Environment Variables
 
@@ -224,45 +143,22 @@ Supports Ed25519 and Secp256k1 key algorithms.
 | `CSPR_TRADE_TRANSPORT` | `stdio` | `stdio` or `http` |
 | `CSPR_TRADE_HOST` | `0.0.0.0` | HTTP listen host |
 | `CSPR_TRADE_PORT` | `3000` | HTTP listen port |
+| `CSPR_TRADE_ALLOWED_HOSTS` | unset | Optional comma-separated host allowlist |
+| `CSPR_TRADE_RATE_LIMIT_WINDOW_MS` | `60000` | Rate-limit window |
+| `CSPR_TRADE_RATE_LIMIT_MAX` | `60` | Max requests per window |
 
-### Signer (--signer mode)
+### Signer
 
 | Variable | Description |
 |----------|-------------|
 | `CSPR_TRADE_KEY_PATH` | Path to PEM private key file |
-| `CSPR_TRADE_KEY_PEM` | PEM key content (inline) |
-| `CSPR_TRADE_MNEMONIC` | BIP-39 mnemonic phrase (12 or 24 words) |
-
-## Example: End-to-End Swap
-
-An agent with both `cspr-trade` (remote) and `cspr-signer` (local) configured:
-
-1. **Agent** calls `get_quote` -> sees "1000 CSPR -> 42.5 USDT, 0.3% impact"
-2. **Agent** calls `build_swap` -> gets unsigned deploy JSON + summary
-3. **Agent** calls `sign_deploy` (local signer) -> gets signed deploy JSON
-4. **Agent** calls `submit_transaction` -> gets transaction hash
-5. **Agent** reports: "Swapped 1000 CSPR for 42.5 USDT. Tx: abc123..."
-
-The private key never left the user's machine. The LLM never saw it.
+| `CSPR_TRADE_KEY_PEM` | PEM key content |
+| `CSPR_TRADE_MNEMONIC` | BIP-39 mnemonic phrase |
 
 ## Development
 
 ```bash
-npm run build        # Build to dist/
-npm test             # Run tests
-npm run test:watch   # Watch mode
-```
-
-### Testing the HTTP transport
-
-```bash
-# Start server
-CSPR_TRADE_NETWORK=testnet CSPR_TRADE_TRANSPORT=http CSPR_TRADE_PORT=3001 \
-  node dist/index.js
-
-# Initialize session
-curl -X POST http://localhost:3001/mcp \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json, text/event-stream' \
-  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'
+npm run build
+npm test
+npm run test:watch
 ```

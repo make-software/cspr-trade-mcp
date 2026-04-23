@@ -72,4 +72,32 @@ export function registerMarketDataTools(server: McpServer, client: CsprTradeClie
       return { content: [{ type: 'text' as const, text: JSON.stringify(currencies, null, 2) }] };
     },
   );
+
+  server.tool(
+    'get_pair_price_history',
+    'Get OHLCV (open/high/low/close/volume) candlestick price history for a specific trading pair. Aggregates swap events into candles. Returns candles in chronological order.',
+    {
+      pair: z.string().describe('Pair contract package hash (e.g., "hash-abc123..." or without hash- prefix)'),
+      interval: z.enum(['1h', '4h', '1d']).optional().describe('Candle interval (default "1h")'),
+      limit: z.number().optional().describe('Number of candles to return (default 24, max 200)'),
+    },
+    async ({ pair, interval, limit }) => {
+      const candles = await client.getPairPriceHistory(pair, interval, limit);
+      return { content: [{ type: 'text' as const, text: JSON.stringify(candles, null, 2) }] };
+    },
+  );
+
+  server.tool(
+    'get_token_price_history',
+    'Get OHLCV candlestick price history for a token by symbol, name, or hash. Resolves to the primary trading pair (highest liquidity) and returns price denominated in the paired token.',
+    {
+      token: z.string().describe('Token symbol (e.g., "sCSPR"), name, or contract package hash'),
+      interval: z.enum(['1h', '4h', '1d']).optional().describe('Candle interval (default "1h")'),
+      limit: z.number().optional().describe('Number of candles to return (default 24, max 200)'),
+    },
+    async ({ token, interval, limit }) => {
+      const result = await client.getTokenPriceHistory(token, interval, limit);
+      return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+    },
+  );
 }

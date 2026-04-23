@@ -6,6 +6,7 @@ export interface SwapApiQuery {
   pairContractPackageHash?: string;
   page?: number;
   pageSize?: number;
+  orderBy?: 'timestamp';
   orderDirection?: 'asc' | 'desc';
 }
 
@@ -18,6 +19,7 @@ export class SwapsApi {
       pair_contract_package_hash: opts?.pairContractPackageHash,
       page: opts?.page !== undefined ? String(opts.page) : undefined,
       page_size: opts?.pageSize !== undefined ? String(opts.pageSize) : undefined,
+      order_by: opts?.orderBy,
       order_direction: opts?.orderDirection,
     });
   }

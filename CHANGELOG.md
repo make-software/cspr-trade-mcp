@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-04-23
+
+### Added
+- **`get_pair_price_history` MCP tool + `getPairPriceHistory` SDK method** — OHLCV (open/high/low/close/volume) candlestick price history for any trading pair. Aggregates swap events from CSPR.trade `/swaps` API into time-bucketed candles. Supports `1h`, `4h`, and `1d` intervals; returns up to 200 candles in chronological order.
+- **`get_token_price_history` MCP tool + `getTokenPriceHistory` SDK method** — resolves a token (by symbol, name, or contract hash) to its primary trading pair and returns OHLCV history denominated in the paired token.
+- New types exported from SDK: `OHLCVCandle`, `PriceHistoryInterval`, `PriceHistoryQuery`
+- `aggregateOHLCV(swaps, interval, limit)` utility exported from SDK for custom aggregation
+- Tool count: 23 (was 21)
+- 9 new unit tests across SDK (`price-history.test.ts`) and MCP (`market-data.test.ts`)
+
 ## [0.4.1] - 2026-04-22
 
 ### Fixed

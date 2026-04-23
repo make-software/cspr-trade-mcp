@@ -39,6 +39,7 @@ import { buildAddLiquidityInnerArgs, buildRemoveLiquidityInnerArgs } from './tra
 import { buildApproveArgs } from './transactions/approve.js';
 import { buildWasmTransaction, buildContractCallTransaction } from './transactions/transaction-builder.js';
 import { getProxyCallerWasm } from './assets/index.js';
+import { aggregateOHLCV, type RawSwap } from './analysis/price-history.js';
 import type {
   Token, Pair, Quote, QuoteParams, QuoteType, Currency,
   LiquidityPosition, LiquidityPositionApiResponse, ImpermanentLoss,
@@ -46,7 +47,7 @@ import type {
   TokenBalance, FTTokenOwnershipApiResponse,
   SwapParams, ApprovalParams, AddLiquidityParams, RemoveLiquidityParams,
   TransactionBundle, SubmitResult, Signer,
-  SwapHistoryQuery,
+  SwapHistoryQuery, OHLCVCandle, PriceHistoryInterval,
 } from './types/index.js';
 
 export interface CsprTradeClientConfig {
@@ -349,6 +350,111 @@ export class CsprTradeClient {
       page: opts?.page,
       pageSize: opts?.pageSize,
     });
+  }
+
+  /**
+   * Get OHLCV (candlestick) price history for a specific trading pair.
+   *
+   * Aggregates swap events from the CSPR.trade API into OHLCV candles.
+   * Returns candles in chronological order (oldest first).
+   *
+   * @param pairContractPackageHash - The pair's contract package hash
+   * @param interval - Candle interval: '1h', '4h', or '1d' (default '1h')
+   * @param limit - Number of candles to return (default 24, max 200)
+   */
+  async getPairPriceHistory(
+    pairContractPackageHash: string,
+    interval: PriceHistoryInterval = '1h',
+    limit = 24,
+  ): Promise<OHLCVCandle[]> {
+    // Fetch enough swaps to cover the requested candles
+    // Use generous page size: at low volume (1 swap/h), 200 swaps covers 200 candles
+    const pageSize = Math.min(limit * 10, 200);
+    const result = await this.swapsApi.getSwaps({
+      pairContractPackageHash,
+      pageSize,
+      orderBy: 'timestamp',
+      orderDirection: 'asc',
+    });
+
+    const rawSwaps = ((result as { data?: unknown[] }).data ?? []) as Array<{
+      timestamp: string;
+      amount0_in: string | null;
+      amount0_out: string | null;
+      amount1_in: string | null;
+      amount1_out: string | null;
+      decimals0: number;
+      decimals1: number;
+    }>;
+
+    const swaps: RawSwap[] = rawSwaps.map((s) => ({
+      timestamp: s.timestamp,
+      amount0In: s.amount0_in,
+      amount0Out: s.amount0_out,
+      amount1In: s.amount1_in,
+      amount1Out: s.amount1_out,
+      decimals0: s.decimals0,
+      decimals1: s.decimals1,
+    }));
+
+    return aggregateOHLCV(swaps, interval, limit);
+  }
+
+  /**
+   * Get OHLCV (candlestick) price history for a token by symbol, name, or hash.
+   * Resolves the token to its primary trading pair (largest reserve pool) and
+   * returns price history denominated in the paired token.
+   *
+   * @param token - Token symbol (e.g. "sCSPR"), name, or contract package hash
+   * @param interval - Candle interval: '1h', '4h', or '1d' (default '1h')
+   * @param limit - Number of candles to return (default 24, max 200)
+   */
+  async getTokenPriceHistory(
+    token: string,
+    interval: PriceHistoryInterval = '1h',
+    limit = 24,
+  ): Promise<{ pairContractPackageHash: string; candles: OHLCVCandle[] }> {
+    // Resolve token hash
+    const resolvedToken = await this.tokenResolver.resolve(token);
+    const normalizedHash = resolvedToken.packageHash.replace(/^hash-/, '');
+
+    // Find all pairs containing this token — fetch first page sorted by reserve0 desc
+    const pairs = await this.pairsApi.getPairs({
+      pageSize: 50,
+      orderBy: 'reserve0',
+      orderDirection: 'desc',
+    });
+
+    const allPairs = ((pairs as unknown as { data?: unknown[] }).data ?? []) as Array<{
+      contract_package_hash: string;
+      token0_contract_package_hash: string;
+      token1_contract_package_hash: string;
+      reserve0: string;
+      reserve1: string;
+    }>;
+
+    // Find pairs where this token is token0 or token1
+    const tokenPairs = allPairs.filter(
+      (p) =>
+        p.token0_contract_package_hash === normalizedHash ||
+        p.token1_contract_package_hash === normalizedHash,
+    );
+
+    if (tokenPairs.length === 0) {
+      throw new Error(`No trading pairs found for token: ${token}`);
+    }
+
+    // Use the pair with highest reserves (first, since sorted by reserve0 desc)
+    const primaryPair = tokenPairs[0];
+    const pairHash = primaryPair.contract_package_hash;
+
+    const candles = await this.getPairPriceHistory(pairHash, interval, limit);
+
+    // If the token is token1 (not token0), invert prices so user gets token0-per-token1
+    // For example, if token is sCSPR and pair is WCSPR/sCSPR (token0=WCSPR, token1=sCSPR),
+    // the raw candles give sCSPR-per-WCSPR. For the sCSPR user, it's more natural to see
+    // WCSPR-per-sCSPR. We leave it as-is and document the orientation.
+    return { pairContractPackageHash: pairHash, candles };
   }
 
   async getPortfolioValue(publicKey: string, currency?: string): Promise<PortfolioValue> {

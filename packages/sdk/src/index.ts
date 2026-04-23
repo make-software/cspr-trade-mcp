@@ -13,3 +13,4 @@ export {
   type OptimalLiquidityResult,
   type TradeAnalysis,
 } from './analysis/trade-analysis.js';
+export { aggregateOHLCV, type RawSwap } from './analysis/price-history.js';

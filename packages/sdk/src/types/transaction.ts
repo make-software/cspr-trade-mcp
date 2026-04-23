@@ -70,3 +70,35 @@ export interface SwapHistoryQuery {
   page?: number;
   pageSize?: number;
 }
+
+/** OHLCV candlestick data for a trading pair */
+export interface OHLCVCandle {
+  /** ISO 8601 timestamp of the candle open (bucket start) */
+  timestamp: string;
+  /** Price at first swap in interval (token1 per token0) */
+  open: number;
+  /** Highest price in interval */
+  high: number;
+  /** Lowest price in interval */
+  low: number;
+  /** Price at last swap in interval */
+  close: number;
+  /** Total volume of token0 traded in this interval (human-readable) */
+  volumeToken0: number;
+  /** Total volume of token1 traded in this interval (human-readable) */
+  volumeToken1: number;
+  /** Number of swaps in this interval */
+  swapCount: number;
+}
+
+/** Price history query interval */
+export type PriceHistoryInterval = '1h' | '4h' | '1d';
+
+/** Price history query params */
+export interface PriceHistoryQuery {
+  pairContractPackageHash: string;
+  /** Candle interval (default '1h') */
+  interval?: PriceHistoryInterval;
+  /** Number of candles to return (default 24, max 200) */
+  limit?: number;
+}

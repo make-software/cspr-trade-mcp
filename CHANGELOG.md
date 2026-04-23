@@ -17,6 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tool count: 23 (was 21)
 - 9 new unit tests across SDK (`price-history.test.ts`) and MCP (`market-data.test.ts`)
 
+### Security
+- Hardened deploy handoff defaults for hosted and remote MCP use: deploy file-path input is now disabled unless explicitly enabled for a local same-machine workflow.
+- Build/sign/submit flows now return and accept inline deploy JSON by default instead of relying on arbitrary file-path handoff between tools.
+- `/health` now exposes whether deploy file-path input is enabled so deployments can verify the server is running in the intended mode.
+
+### Fixed
+- Resolved the remaining `casper-js-sdk` import paths that still failed under Node 20 / ESM, restoring green build-and-test CI on both Node 20 and Node 22.
+
 ## [0.4.1] - 2026-04-22
 
 ### Fixed

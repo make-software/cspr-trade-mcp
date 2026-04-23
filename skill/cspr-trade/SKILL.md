@@ -79,13 +79,15 @@ Optional local signer:
 
 Agent flow: `build_swap` / `build_add_liquidity` / `build_remove_liquidity` (remote) → `sign_deploy` (local) → `submit_transaction` (remote).
 
+Default deploy handoff is inline JSON. Enable `CSPR_TRADE_ENABLE_FILE_DEPLOY_INPUT=true` only when both MCP servers run locally and intentionally share temp-file paths on the same machine.
+
 ### `sign_deploy` reference
 
 If `sign_deploy` appears in available tools, the local signer is configured. Use it automatically rather than asking the user to sign manually.
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `deploy_json` | string | Yes | Unsigned deploy JSON string or file path from `build_swap`, `build_add_liquidity`, `build_remove_liquidity`, or `build_approve_token` |
+| `deploy_json` | string | Yes | Unsigned deploy JSON string by default. File paths only work when `CSPR_TRADE_ENABLE_FILE_DEPLOY_INPUT=true` on a local install |
 | `key_source` | enum | Yes | `pem_file`, `pem_env`, or `mnemonic` |
 | `algorithm` | enum | No | `ed25519` (default) or `secp256k1` |
 | `mnemonic_index` | number | No | Derivation index for mnemonic mode |
@@ -94,6 +96,7 @@ Key-source environment variables:
 - `pem_file` → `CSPR_TRADE_KEY_PATH`
 - `pem_env` → `CSPR_TRADE_KEY_PEM`
 - `mnemonic` → `CSPR_TRADE_MNEMONIC`
+- `CSPR_TRADE_ENABLE_FILE_DEPLOY_INPUT` → optional, enables local temp-file deploy workflow
 
 ## Intent Classification
 
@@ -158,12 +161,14 @@ Follow these steps in order.
    ```
 7. **Handle approvals if present** — some swaps require approval transactions before the swap.
 8. **Sign**:
-   - If `sign_deploy` exists, call it with the unsigned deploy JSON or saved path.
+   - If `sign_deploy` exists, call it with the unsigned deploy JSON.
+   - If local temp-file mode is intentionally enabled, a saved path also works.
    - Otherwise ask the user to sign externally with their own Casper wallet.
 9. **Submit**:
    ```
-   submit_transaction({ signed_deploy_json: "<signed JSON or signed file path>" })
+   submit_transaction({ signed_deploy_json: "<signed JSON>" })
    ```
+   - If local temp-file mode is intentionally enabled, a signed file path also works.
 10. **Report transaction hash** and tell the user how to track it.
 
 ## Adding Liquidity

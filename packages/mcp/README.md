@@ -43,6 +43,8 @@ The HTTP transport also exposes a health endpoint at `/health`.
 - MCP: `https://mcp.cspr.trade/mcp`
 - Health: `https://mcp.cspr.trade/health`
 
+The hosted endpoint keeps `CSPR_TRADE_ENABLE_FILE_DEPLOY_INPUT` off, so `submit_transaction` accepts inline signed JSON only.
+
 ### Local signer (`--signer` mode)
 
 A separate, local-only MCP instance that signs deploys without exposing private keys to the network or the LLM.
@@ -63,6 +65,8 @@ A separate, local-only MCP instance that signs deploys without exposing private 
 ```
 
 Agent flow: `build_swap` → `sign_deploy` → `submit_transaction`.
+
+By default, deploy handoff is JSON-only. Enable `CSPR_TRADE_ENABLE_FILE_DEPLOY_INPUT=true` on local installs if you want build/sign/submit to exchange temp-file paths on the same machine.
 
 ## Tool counts
 
@@ -130,7 +134,8 @@ Agent flow: `build_swap` → `sign_deploy` → `submit_transaction`.
 - `get_token_balance` uses `account_public_key` and optionally `token`
 - `build_swap` supports optional `token_in_balance`
 - `build_add_liquidity` supports optional `token_a_balance` and `token_b_balance`
-- `sign_deploy` accepts either inline deploy JSON or a file path
+- `sign_deploy`, `build_swap`, `build_add_liquidity`, `build_remove_liquidity`, and `submit_transaction` use inline JSON by default
+- Set `CSPR_TRADE_ENABLE_FILE_DEPLOY_INPUT=true` only for local installs that need temp-file path handoff on the same machine
 
 ## Environment Variables
 
@@ -146,6 +151,7 @@ Agent flow: `build_swap` → `sign_deploy` → `submit_transaction`.
 | `CSPR_TRADE_ALLOWED_HOSTS` | unset | Optional comma-separated host allowlist |
 | `CSPR_TRADE_RATE_LIMIT_WINDOW_MS` | `60000` | Rate-limit window |
 | `CSPR_TRADE_RATE_LIMIT_MAX` | `60` | Max requests per window |
+| `CSPR_TRADE_ENABLE_FILE_DEPLOY_INPUT` | `false` | Enable local temp-file deploy workflow for build/sign/submit tools |
 
 ### Signer
 

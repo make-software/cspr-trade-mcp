@@ -1,18 +1,20 @@
 import { z } from 'zod';
 import { readFile } from 'node:fs/promises';
-import { Transaction, PrivateKey, KeyAlgorithm } from 'casper-js-sdk';
+import casperSdk from 'casper-js-sdk';
 import * as bip39 from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english';
 import { HDKey } from '@scure/bip32';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { readDeployJson, writeDeployFile } from './deploy-file.js';
+import { formatDeployArtifact, getDeployInputDescription, readDeployJson } from './deploy-file.js';
+
+const { Transaction, PrivateKey, KeyAlgorithm } = casperSdk;
 
 export function registerSignerTools(server: McpServer) {
   server.tool(
     'sign_deploy',
     'Sign an unsigned Casper deploy locally. Private key never leaves this machine. Supports PEM key files and BIP-39 mnemonic phrases.',
     {
-      deploy_json: z.string().describe('Unsigned deploy JSON string, or a file path to an unsigned deploy JSON file (from build_swap, build_add_liquidity, etc.)'),
+      deploy_json: z.string().describe(getDeployInputDescription('unsigned')),
       key_source: z.enum(['pem_file', 'pem_env', 'mnemonic']).describe(
         '"pem_file" = read PEM from CSPR_TRADE_KEY_PATH env var, ' +
         '"pem_env" = read PEM content from CSPR_TRADE_KEY_PEM env var, ' +
@@ -70,18 +72,17 @@ export function registerSignerTools(server: McpServer) {
         }
       }
 
-      // Parse and sign the deploy (accepts file path or inline JSON)
+      // Parse and sign the deploy (inline JSON by default; local temp-file mode can opt in)
       const deployJsonStr = await readDeployJson(args.deploy_json);
       const transaction = Transaction.fromJSON(JSON.parse(deployJsonStr));
       transaction.sign(privateKey);
       const signedJson = JSON.stringify(transaction.toJSON());
-      const signedPath = await writeDeployFile(signedJson);
 
       const signerPubKey = privateKey.publicKey.toHex();
       return {
         content: [{
           type: 'text' as const,
-          text: `Transaction signed successfully.\nSigner: ${signerPubKey}\nTransaction hash: ${transaction.hash.toHex()}\nSigned transaction saved to: ${signedPath}`,
+          text: `Transaction signed successfully.\nSigner: ${signerPubKey}\nTransaction hash: ${transaction.hash.toHex()}\n${await formatDeployArtifact('Signed transaction', signedJson)}`,
         }],
       };
     },

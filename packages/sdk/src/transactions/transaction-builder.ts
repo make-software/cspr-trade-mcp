@@ -1,6 +1,8 @@
-import { SessionBuilder, ContractCallBuilder, PublicKey } from 'casper-js-sdk';
+import casperSdk from 'casper-js-sdk';
 import type { Args, Transaction } from 'casper-js-sdk';
 import type { NetworkConfig } from '../config.js';
+
+const { SessionBuilder, ContractCallBuilder, PublicKey } = casperSdk;
 
 export function buildWasmTransaction(params: {
   publicKey: string;

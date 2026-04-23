@@ -3,6 +3,8 @@
 Run your own CSPR.trade MCP server using the npm packages. This is for developers who want a private instance, need testnet access, or want to customize the setup.
 
 > **Just want to connect?** Use the [public endpoint](https://mcp.cspr.trade/mcp) — no setup needed. See the [Getting Started](/docs/getting-started) guide.
+>
+> The hosted `mcp.cspr.trade` deployment keeps file-based deploy input **off**. Remote callers should pass inline JSON to `submit_transaction`; the service will not read deploy files from the host filesystem.
 
 ## Packages
 
@@ -44,6 +46,43 @@ CSPR_TRADE_NETWORK=mainnet CSPR_TRADE_TRANSPORT=http CSPR_TRADE_PORT=3001   npx 
 Point any MCP client at `http://your-host:3001/mcp`.
 
 Health check: `http://your-host:3001/health`
+
+## Local file-path workflow (optional)
+
+By default, both the main MCP server and `--signer` mode expect **inline JSON** for deploys and signed transactions.
+
+Set `CSPR_TRADE_ENABLE_FILE_DEPLOY_INPUT=true` only for local installs that intentionally want the temp-file workflow:
+
+- build tools write unsigned deploys to local temp files and return those paths
+- `sign_deploy` can read an unsigned deploy from one of those local paths
+- `submit_transaction` can read a signed deploy from one of those local paths
+
+Example stdio config with the file-path workflow enabled locally:
+
+```json
+{
+  "mcpServers": {
+    "cspr-trade": {
+      "command": "npx",
+      "args": ["@make-software/cspr-trade-mcp"],
+      "env": {
+        "CSPR_TRADE_NETWORK": "testnet",
+        "CSPR_TRADE_ENABLE_FILE_DEPLOY_INPUT": "true"
+      }
+    },
+    "cspr-signer": {
+      "command": "npx",
+      "args": ["@make-software/cspr-trade-mcp", "--signer"],
+      "env": {
+        "CSPR_TRADE_KEY_PATH": "~/.casper/secret_key.pem",
+        "CSPR_TRADE_ENABLE_FILE_DEPLOY_INPUT": "true"
+      }
+    }
+  }
+}
+```
+
+Leave the flag unset for hosted or shared HTTP deployments unless every caller is expected to reference files on that same machine.
 
 ## Local Signer Mode
 
@@ -95,6 +134,7 @@ Supports Ed25519 and Secp256k1 key algorithms.
 | `CSPR_TRADE_ALLOWED_HOSTS` | unset | Optional comma-separated allowed hostnames for HTTP transport |
 | `CSPR_TRADE_RATE_LIMIT_WINDOW_MS` | `60000` | HTTP rate-limit window |
 | `CSPR_TRADE_RATE_LIMIT_MAX` | `60` | Max requests per rate-limit window |
+| `CSPR_TRADE_ENABLE_FILE_DEPLOY_INPUT` | `false` | Enable local temp-file deploy workflow for build/sign/submit tools |
 
 ### Signer
 

@@ -55,10 +55,12 @@ describe('HTTP server bootstrap', () => {
     delete process.env.CSPR_TRADE_RATE_LIMIT_MAX;
     delete process.env.CSPR_TRADE_HOST;
     delete process.env.CSPR_TRADE_PORT;
+    delete process.env.CSPR_TRADE_ENABLE_FILE_DEPLOY_INPUT;
   });
 
   it('registers a /health endpoint and configures trust proxy + scoped rate limiting defaults for HTTP transport', async () => {
     process.env.CSPR_TRADE_TRANSPORT = 'http';
+    process.env.CSPR_TRADE_ENABLE_FILE_DEPLOY_INPUT = 'true';
 
     await import('../../src/index.js');
 
@@ -83,5 +85,25 @@ describe('HTTP server bootstrap', () => {
     }));
     expect(appPost).toHaveBeenCalledWith('/mcp', expect.any(Function));
     expect(appListen).toHaveBeenCalled();
+
+    const healthHandler = appGet.mock.calls.find(([route]) => route === '/health')?.[1];
+    expect(healthHandler).toBeTypeOf('function');
+
+    const req = { query: {} };
+    const res = {
+      writeHead: vi.fn(),
+      end: vi.fn(),
+    };
+    await healthHandler(req, res);
+
+    expect(res.writeHead).toHaveBeenCalledWith(200, { 'Content-Type': 'application/json' });
+    expect(res.end).toHaveBeenCalledTimes(1);
+    const payload = JSON.parse(res.end.mock.calls[0][0]);
+    expect(payload).toMatchObject({
+      status: 'ok',
+      version: '0.4.2',
+      transport: 'http',
+      fileDeployInputEnabled: true,
+    });
   });
 });

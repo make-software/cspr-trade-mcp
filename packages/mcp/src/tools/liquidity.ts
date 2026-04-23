@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CsprTradeClient } from '@make-software/cspr-trade-mcp-sdk';
-import { writeDeployFile } from './deploy-file.js';
+import { formatDeployArtifact, isDeployFileInputEnabled } from './deploy-file.js';
 
 export function registerLiquidityTools(server: McpServer, client: CsprTradeClient) {
   server.tool(
@@ -37,19 +37,21 @@ export function registerLiquidityTools(server: McpServer, client: CsprTradeClien
         parts.push('\n--- APPROVALS REQUIRED ---');
         for (let i = 0; i < bundle.approvalsRequired.length; i++) {
           const approval = bundle.approvalsRequired[i];
-          const approvalPath = await writeDeployFile(approval.transactionJson);
           parts.push(`\nStep ${i + 1}: ${approval.summary}`);
-          parts.push(`Approval transaction saved to: ${approvalPath}`);
+          parts.push(await formatDeployArtifact('Approval transaction', approval.transactionJson));
           parts.push(`Gas: ${approval.estimatedGasCost}`);
         }
         parts.push('\n--- ADD LIQUIDITY TRANSACTION ---');
       }
 
-      const deployPath = await writeDeployFile(bundle.transactionJson);
-      parts.push(`\nTransaction saved to: ${deployPath}`);
+      parts.push(`\n${await formatDeployArtifact('Transaction', bundle.transactionJson)}`);
 
       if (bundle.approvalsRequired?.length) {
-        parts.push('\nWorkflow: Sign and submit each approval with submit_transaction, then sign and submit the add-liquidity transaction with submit_transaction.');
+        if (isDeployFileInputEnabled()) {
+          parts.push('\nWorkflow: Sign and submit each approval path with submit_transaction, then sign and submit the add-liquidity path with submit_transaction.');
+        } else {
+          parts.push('\nWorkflow: Sign and submit each approval JSON payload with submit_transaction, then sign and submit the add-liquidity JSON payload with submit_transaction.');
+        }
       }
 
       return { content: [{ type: 'text' as const, text: parts.join('\n') }] };
@@ -74,8 +76,7 @@ export function registerLiquidityTools(server: McpServer, client: CsprTradeClien
         deadlineMinutes: args.deadline_minutes,
         senderPublicKey: args.sender_public_key,
       });
-      const deployPath = await writeDeployFile(bundle.transactionJson);
-      return { content: [{ type: 'text' as const, text: bundle.summary + `\n\nUnsigned transaction saved to: ${deployPath}` }] };
+      return { content: [{ type: 'text' as const, text: bundle.summary + `\n\n${await formatDeployArtifact('Unsigned transaction', bundle.transactionJson)}` }] };
     },
   );
 }

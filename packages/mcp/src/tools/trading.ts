@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CsprTradeClient } from '@make-software/cspr-trade-mcp-sdk';
-import { writeDeployFile, readDeployJson } from './deploy-file.js';
+import { formatDeployArtifact, getDeployInputDescription, isDeployFileInputEnabled, readDeployJson } from './deploy-file.js';
 
 export function registerTradingTools(server: McpServer, client: CsprTradeClient) {
   server.tool(
@@ -39,21 +39,27 @@ export function registerTradingTools(server: McpServer, client: CsprTradeClient)
         parts.push('\n--- APPROVAL REQUIRED ---');
         for (let i = 0; i < bundle.approvalsRequired.length; i++) {
           const approval = bundle.approvalsRequired[i];
-          const approvalPath = await writeDeployFile(approval.transactionJson);
           parts.push(`\nStep ${i + 1}: ${approval.summary}`);
-          parts.push(`Approval transaction saved to: ${approvalPath}`);
+          parts.push(await formatDeployArtifact('Approval transaction', approval.transactionJson));
           parts.push(`Gas: ${approval.estimatedGasCost}`);
         }
         parts.push('\n--- SWAP TRANSACTION ---');
       }
 
-      const deployPath = await writeDeployFile(bundle.transactionJson);
-      parts.push(`\nSwap transaction saved to: ${deployPath}`);
+      parts.push(`\n${await formatDeployArtifact('Swap transaction', bundle.transactionJson)}`);
 
       if (bundle.approvalsRequired?.length) {
-        parts.push('\nWorkflow: Sign and submit each approval with submit_transaction, then sign and submit the swap with submit_transaction.');
+        if (isDeployFileInputEnabled()) {
+          parts.push('\nWorkflow: Sign and submit each approval path with submit_transaction, then sign and submit the swap path with submit_transaction.');
+        } else {
+          parts.push('\nWorkflow: Sign and submit each approval JSON payload with submit_transaction, then sign and submit the swap JSON payload with submit_transaction.');
+        }
       } else {
-        parts.push('Pass this path to sign_deploy, then use submit_transaction.');
+        if (isDeployFileInputEnabled()) {
+          parts.push('Pass this path to sign_deploy, then use submit_transaction.');
+        } else {
+          parts.push('Pass this JSON to sign_deploy, then submit the signed JSON with submit_transaction.');
+        }
       }
 
       return { content: [{ type: 'text' as const, text: parts.join('\n') }] };
@@ -76,8 +82,7 @@ export function registerTradingTools(server: McpServer, client: CsprTradeClient)
         amount: args.amount,
         senderPublicKey: args.sender_public_key,
       });
-      const deployPath = await writeDeployFile(bundle.transactionJson);
-      return { content: [{ type: 'text' as const, text: bundle.summary + `\n\nUnsigned transaction saved to: ${deployPath}` }] };
+      return { content: [{ type: 'text' as const, text: bundle.summary + `\n\n${await formatDeployArtifact('Unsigned transaction', bundle.transactionJson)}` }] };
     },
   );
 
@@ -85,7 +90,7 @@ export function registerTradingTools(server: McpServer, client: CsprTradeClient)
     'submit_transaction',
     'Submit a signed transaction to the Casper network via node RPC.',
     {
-      signed_deploy_json: z.string().describe('The signed deploy JSON string, or a file path to a signed deploy JSON file'),
+      signed_deploy_json: z.string().describe(getDeployInputDescription('signed')),
     },
     async ({ signed_deploy_json }) => {
       const json = await readDeployJson(signed_deploy_json);

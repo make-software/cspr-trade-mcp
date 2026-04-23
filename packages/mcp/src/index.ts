@@ -3,12 +3,14 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import type { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import type { Request, Response } from 'express';
 import { createServer, createSignerServer } from './server.js';
+import { isDeployFileInputEnabled } from './tools/deploy-file.js';
 
 const signerMode = process.argv.includes('--signer');
 const network = (process.env.CSPR_TRADE_NETWORK as 'mainnet' | 'testnet') ?? 'mainnet';
 const apiUrl = process.env.CSPR_TRADE_API_URL;
 const transport = process.env.CSPR_TRADE_TRANSPORT ?? 'stdio';
-const version = '0.4.1';
+const version = '0.4.2';
+const fileDeployInputEnabled = isDeployFileInputEnabled();
 
 function getRateLimitConfig() {
   return {
@@ -63,6 +65,7 @@ if (transport === 'http') {
       startedAt,
       activeSessions: transports.size,
       memoryMB: Math.round(process.memoryUsage.rss() / 1048576),
+      fileDeployInputEnabled,
     };
 
     if (deep) {

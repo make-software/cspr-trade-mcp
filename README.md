@@ -8,6 +8,8 @@ AI agent integration for [CSPR.trade](https://cspr.trade), the leading DEX on th
 
 **🔗 Public endpoint:** [`https://mcp.cspr.trade/mcp`](https://mcp.cspr.trade/mcp) — connect any MCP client, no setup required.
 
+The hosted endpoint runs with file-based deploy input **disabled**. `submit_transaction` accepts inline signed JSON only; it will not read deploy files from the server filesystem.
+
 **📖 Documentation:** [mcp.cspr.trade](https://mcp.cspr.trade)
 
 ## Connect Your Agent
@@ -78,7 +80,7 @@ npm install @make-software/cspr-trade-mcp
 }
 ```
 
-See the [Self-Hosting guide](https://mcp.cspr.trade/docs/self-hosting) for HTTP server setup, local signer mode, and production deployment.
+See the [Self-Hosting guide](https://mcp.cspr.trade/docs/self-hosting) for HTTP server setup, local signer mode, production deployment, and the optional file-path workflow.
 
 ## Packages
 

@@ -1,4 +1,7 @@
-import { Args, CLValue, Key } from 'casper-js-sdk';
+import casperSdk from 'casper-js-sdk';
+import type { Args } from 'casper-js-sdk';
+
+const { Args, CLValue, Key } = casperSdk;
 
 export type AddLiquidityInnerArgsParams =
   | {

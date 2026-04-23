@@ -1,4 +1,4 @@
-import { PublicKey, HttpHandler, RpcClient, Transaction } from 'casper-js-sdk';
+import casperSdk from 'casper-js-sdk';
 
 import { HttpClient } from './api/http.js';
 import { TokensApi } from './api/tokens.js';
@@ -38,6 +38,8 @@ import { getSwapEntryPoint, buildSwapInnerArgs, getSwapAttachedValue } from './t
 import { buildAddLiquidityInnerArgs, buildRemoveLiquidityInnerArgs } from './transactions/liquidity.js';
 import { buildApproveArgs } from './transactions/approve.js';
 import { buildWasmTransaction, buildContractCallTransaction } from './transactions/transaction-builder.js';
+
+const { PublicKey, HttpHandler, RpcClient, Transaction } = casperSdk;
 import { getProxyCallerWasm } from './assets/index.js';
 import { aggregateOHLCV, type RawSwap } from './analysis/price-history.js';
 import type {

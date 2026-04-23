@@ -14,6 +14,7 @@ Environment=CSPR_TRADE_HOST=127.0.0.1
 Environment=CSPR_TRADE_PORT=3010
 Environment=CSPR_TRADE_RATE_LIMIT_WINDOW_MS=60000
 Environment=CSPR_TRADE_RATE_LIMIT_MAX=60
+Environment=CSPR_TRADE_ENABLE_FILE_DEPLOY_INPUT=false
 ExecStart=/usr/bin/env node /home/jeanclaude/workspace/cspr-trade-mcp/packages/mcp/dist/index.js
 Restart=always
 RestartSec=3

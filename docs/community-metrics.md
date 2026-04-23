@@ -39,6 +39,6 @@ curl -s 'https://api.github.com/repos/make-software/cspr-trade-mcp' | python3 -c
 ## Notes
 
 - Downloads growing very slowly (flat at 167/158 today) — no announcement campaign yet
-- GitHub stars stagnant at 1 — repo is not prominently linked from CSPR.trade UI
+- GitHub stars stagnant at 1 — repo is not prominently linked from CSPR.trade UI; live check on 2026-04-23 found no `mcp.cspr.trade` reference in the cspr.trade homepage HTML
 - Decision #187 approved: do not derive OHLCV client-side; request official API from CSPR.trade team (task #900)
-- Task #881 (community growth announcement) blocked pending social media approval (STANDING-ORDERS)
+- Decision #188 approved the task #881 announcement campaign on 2026-04-22; execution is now unblocked, with remaining work on public distribution and CSPR.trade UI link coordination

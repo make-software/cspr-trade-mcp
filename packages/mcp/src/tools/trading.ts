@@ -85,12 +85,31 @@ export function registerTradingTools(server: McpServer, client: CsprTradeClient)
     'submit_transaction',
     'Submit a signed transaction to the Casper network via node RPC.',
     {
-      signed_deploy_json: z.string().describe('The signed deploy JSON string, or a file path to a signed deploy JSON file'),
+      signed_deploy_json: z.string().describe(
+        'The signed deploy JSON string. In stdio mode a file path to a signed deploy JSON file is also accepted.',
+      ),
     },
     async ({ signed_deploy_json }) => {
-      const json = await readDeployJson(signed_deploy_json);
-      const result = await client.submitTransaction(json);
-      return { content: [{ type: 'text' as const, text: `Transaction submitted. Hash: ${result.transactionHash}` }] };
+      let json: string;
+      try {
+        json = await readDeployJson(signed_deploy_json);
+      } catch (err) {
+        return {
+          content: [{ type: 'text' as const, text: (err as Error).message }],
+          isError: true,
+        };
+      }
+      try {
+        const result = await client.submitTransaction(json);
+        return { content: [{ type: 'text' as const, text: `Transaction submitted. Hash: ${result.transactionHash}` }] };
+      } catch {
+        // Intentionally generic: the underlying error may echo bytes of the input
+        // (e.g. V8 JSON.parse SyntaxError snippets) or internal network state.
+        return {
+          content: [{ type: 'text' as const, text: 'Failed to submit transaction: invalid JSON or upstream error.' }],
+          isError: true,
+        };
+      }
     },
   );
 }

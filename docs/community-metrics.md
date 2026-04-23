@@ -5,14 +5,14 @@ _Last updated: 2026-04-23_
 ## npm Downloads (last 30 days)
 
 | Package | 2026-04-21 | 2026-04-22 | 2026-04-23 |
-|---------|-----------|-----------|-----------|
-| `@make-software/cspr-trade-mcp` | 166 | 167 | 167 |
-| `@make-software/cspr-trade-mcp-sdk` | 157 | 158 | 158 |
+|---------|-----------|-----------|-----------||
+| `@make-software/cspr-trade-mcp` | 166 | 167 | 504 |
+| `@make-software/cspr-trade-mcp-sdk` | 157 | 158 | 543 |
 
 ## GitHub (make-software/cspr-trade-mcp)
 
 | Metric | 2026-04-21 | 2026-04-22 | 2026-04-23 |
-|--------|-----------|-----------|-----------|
+|--------|-----------|-----------|-----------||
 | Stars | 1 | 1 | 1 |
 | Forks | 0 | 0 | 0 |
 | Open Issues | 0 | 0 | 0 |

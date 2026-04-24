@@ -1,18 +1,18 @@
 # CSPR.trade MCP — Community Metrics
 
-_Last updated: 2026-04-24_
+_Last updated: 2026-04-24 (AM cycle)_
 
 ## npm Downloads (last 30 days)
 
-| Package | 2026-04-21 | 2026-04-22 | 2026-04-23 | 2026-04-24 | Notes |
+| Package | 2026-04-21 | 2026-04-22 | 2026-04-23 | 2026-04-24 (AM) | Notes |
 |---------|-----------|-----------|-----------|-----------|-------|
-| `@make-software/cspr-trade-mcp` | 166 | 167 | 504 | 504 | Snapshot lags ~1d; 2026-04-24 reflects end of 2026-04-22 (no change) |
-| `@make-software/cspr-trade-mcp-sdk` | 157 | 158 | 543 | 543 | Snapshot lags ~1d; 2026-04-24 reflects end of 2026-04-22 (no change) |
+| `@make-software/cspr-trade-mcp` | 166 | 167 | 504 | 500 | Snapshot lags ~1d; window rolls daily |
+| `@make-software/cspr-trade-mcp-sdk` | 157 | 158 | 543 | 554 | Small uptick |
 
 ## GitHub (make-software/cspr-trade-mcp)
 
-| Metric | 2026-04-21 | 2026-04-22 | 2026-04-23 | 2026-04-24 |
-|--------|-----------|-----------|-----------|-----------|
+| Metric | 2026-04-21 | 2026-04-22 | 2026-04-23 | 2026-04-24 (AM) |
+|--------|-----------|-----------|-----------|-----------| 
 | Stars | 1 | 1 | 1 | 1 |
 | Forks | 0 | 0 | 1 | 1 |
 | Open Issues | 0 | 0 | 1 | 1 |

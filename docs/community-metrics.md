@@ -1,22 +1,22 @@
 # CSPR.trade MCP — Community Metrics
 
-_Last updated: 2026-04-23_
+_Last updated: 2026-04-24_
 
 ## npm Downloads (last 30 days)
 
-| Package | 2026-04-21 | 2026-04-22 | 2026-04-23 | Notes |
-|---------|-----------|-----------|-----------|-------||
-| `@make-software/cspr-trade-mcp` | 166 | 167 | 504 | Stable (last-month snapshot lags by ~1 day) |
-| `@make-software/cspr-trade-mcp-sdk` | 157 | 158 | 543 | Stable (last-month snapshot lags by ~1 day) |
+| Package | 2026-04-21 | 2026-04-22 | 2026-04-23 | 2026-04-24 | Notes |
+|---------|-----------|-----------|-----------|-----------|-------|
+| `@make-software/cspr-trade-mcp` | 166 | 167 | 504 | 504 | Snapshot lags ~1d; 2026-04-24 reflects end of 2026-04-22 (no change) |
+| `@make-software/cspr-trade-mcp-sdk` | 157 | 158 | 543 | 543 | Snapshot lags ~1d; 2026-04-24 reflects end of 2026-04-22 (no change) |
 
 ## GitHub (make-software/cspr-trade-mcp)
 
-| Metric | 2026-04-21 | 2026-04-22 | 2026-04-23 |
-|--------|-----------|-----------|-----------|
-| Stars | 1 | 1 | 1 |
-| Forks | 0 | 0 | 0 |
-| Open Issues | 0 | 0 | 1 |
-| Watchers | 1 | 1 | 1 |
+| Metric | 2026-04-21 | 2026-04-22 | 2026-04-23 | 2026-04-24 |
+|--------|-----------|-----------|-----------|-----------|
+| Stars | 1 | 1 | 1 | 1 |
+| Forks | 0 | 0 | 1 | 1 |
+| Open Issues | 0 | 0 | 1 | 1 |
+| Watchers | 1 | 1 | 1 | 1 |
 
 ## Glama.ai Listing
 
@@ -38,7 +38,10 @@ curl -s 'https://api.github.com/repos/make-software/cspr-trade-mcp' | python3 -c
 
 ## Notes
 
-- Downloads growing very slowly (flat at ~504/543 today, npm snapshot lags 1d) — announcement campaign execution blocked on xurl auth (OAuth2 token 401 — needs re-auth by Michael)
-- GitHub stars stagnant at 1 — repo is not prominently linked from CSPR.trade UI; live check on 2026-04-23 found no `mcp.cspr.trade` reference in the cspr.trade homepage HTML
-- Decision #187 approved: do not derive OHLCV client-side; GitHub issue #12 filed to request official API from CSPR.trade team (task #900 partially complete)
-- Decision #188 approved the task #881 announcement campaign on 2026-04-22; X/dev.to posting blocked on xurl OAuth re-auth
+- Downloads flat at 504/543 (npm snapshot lags 1d; no announcement campaign posted yet)
+- GitHub stars stagnant at 1 — repo not prominently linked from CSPR.trade UI
+- Decision #197 approved full announcement campaign (X, dev.to, Casper Discord) on 2026-04-23
+- X posting blocked: xurl OAuth2 token 401 — Michael needs to run `xurl auth oauth2 --app jcva JeanClawd99` on baremetal with `tweet.write` scope
+- dev.to posting blocked: no dev.to API key in ~/.hermes/.secrets/ — Michael needs to add it
+- JeanClawd not in Casper Discord server — Discord posting requires join link or Michael posts directly
+- Task #881 remains needs_input until at least one channel can be executed

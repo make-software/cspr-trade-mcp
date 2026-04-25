@@ -13,7 +13,7 @@ export function createServer(config: CsprTradeClientConfig): McpServer {
 
   const server = new McpServer({
     name: 'cspr-trade',
-    version: '0.3.0',
+    version: '0.4.2',
   });
 
   registerMarketDataTools(server, client);
@@ -28,7 +28,7 @@ export function createServer(config: CsprTradeClientConfig): McpServer {
 export function createSignerServer(): McpServer {
   const server = new McpServer({
     name: 'cspr-trade-signer',
-    version: '0.1.0',
+    version: '0.4.2',
   });
 
   registerSignerTools(server);

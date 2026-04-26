@@ -42,6 +42,7 @@ You have access to the CSPR.trade MCP surface with **22 public tools**, plus an 
 - `get_swap_history`
 - `get_portfolio_value`
 - `get_position_status`
+- `get_native_cspr_balance`
 
 ### Optional signer tool
 - `sign_deploy` — available only when a separate local signer MCP server is configured

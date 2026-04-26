@@ -4,6 +4,18 @@ import type { CsprTradeClient } from '@make-software/cspr-trade-mcp-sdk';
 
 export function registerAccountTools(server: McpServer, client: CsprTradeClient) {
   server.tool(
+    'get_native_cspr_balance',
+    'Get the native CSPR balance for a Casper account. Queries the Casper node RPC directly using the account public key. Returns balance in both motes (raw) and CSPR (human-readable). Note: does not include CEP-18 token balances — use get_token_balance for those.',
+    {
+      account_public_key: z.string().describe('Account public key (hex, with algorithm prefix e.g. "01abc..." for Ed25519 or "02abc..." for secp256k1)'),
+    },
+    async ({ account_public_key }) => {
+      const result = await client.getNativeCsprBalance(account_public_key);
+      return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+    },
+  );
+
+  server.tool(
     'get_token_balance',
     'Get CEP-18 fungible token balances for a Casper account. Returns all CEP-18 tokens held, or filters to a specific token if `token` matches a symbol, name, or contract package hash. Native CSPR balance is not included (this endpoint covers CEP-18 tokens only).',
     {

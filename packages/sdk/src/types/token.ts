@@ -68,3 +68,13 @@ export interface TokenBalance {
   balanceFormatted: string;
   iconUrl: string | null;
 }
+
+/** Native CSPR balance result */
+export interface NativeCsprBalance {
+  /** Public key (hex) this balance belongs to */
+  publicKey: string;
+  /** Raw balance in motes (1 CSPR = 1_000_000_000 motes) */
+  balanceMotes: string;
+  /** Human-readable balance in CSPR */
+  balanceCspr: string;
+}

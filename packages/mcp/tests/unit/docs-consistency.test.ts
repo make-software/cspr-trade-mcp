@@ -33,9 +33,9 @@ describe('documentation consistency', () => {
   const allToolNames = [...publicToolNames, ...signerToolNames];
 
   it('source-of-truth tool counts match the expected public and full setup totals', () => {
-    expect(publicToolNames).toHaveLength(22);
+    expect(publicToolNames).toHaveLength(23);
     expect(signerToolNames).toEqual(['sign_deploy']);
-    expect(allToolNames).toHaveLength(23);
+    expect(allToolNames).toHaveLength(24);
   });
 
   it('public docs and site assets use the current tool counts', () => {

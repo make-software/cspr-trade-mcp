@@ -1,4 +1,4 @@
-import { PublicKey, HttpHandler, RpcClient, Transaction } from 'casper-js-sdk';
+import { PublicKey, HttpHandler, RpcClient, PurseIdentifier, Transaction } from 'casper-js-sdk';
 
 import { HttpClient } from './api/http.js';
 import { TokensApi } from './api/tokens.js';
@@ -45,7 +45,7 @@ import type {
   Token, Pair, Quote, QuoteParams, QuoteType, Currency,
   LiquidityPosition, LiquidityPositionApiResponse, ImpermanentLoss,
   PortfolioValue, PositionStatus, UnrealizedPnL,
-  TokenBalance, FTTokenOwnershipApiResponse,
+  TokenBalance, FTTokenOwnershipApiResponse, NativeCsprBalance,
   SwapParams, ApprovalParams, AddLiquidityParams, RemoveLiquidityParams,
   TransactionBundle, SubmitResult, Signer,
   SwapHistoryQuery, OHLCVCandle, PriceHistoryInterval,
@@ -339,6 +339,23 @@ export class CsprTradeClient {
       b.name.toLowerCase() === needle ||
       b.contractPackageHash.replace(/^hash-/, '').toLowerCase() === needle,
     );
+  }
+
+  /**
+   * Get the native CSPR balance for an account via the Casper node RPC.
+   * Uses query_balance with main_purse_under_public_key identifier.
+   *
+   * @param publicKey - Account public key (hex, with algorithm prefix e.g. "01..." or "02...")
+   */
+  async getNativeCsprBalance(publicKey: string): Promise<NativeCsprBalance> {
+    const pubKey = PublicKey.fromHex(publicKey);
+    const purseIdentifier = PurseIdentifier.fromPublicKey(pubKey);
+    const handler = new HttpHandler(this.networkConfig.nodeRpcUrl);
+    const rpcClient = new RpcClient(handler);
+    const result = await rpcClient.queryLatestBalance(purseIdentifier);
+    const balanceMotes = result.balance.getValue().toString();
+    const balanceCspr = (Number(balanceMotes) / 1_000_000_000).toFixed(9).replace(/\.?0+$/, '');
+    return { publicKey, balanceMotes, balanceCspr };
   }
 
   async getSwapHistory(opts?: SwapHistoryQuery) {

@@ -207,6 +207,11 @@ Get current position status, including current token amounts and impermanent los
 - `account_public_key` (required string)
 - `pair_contract_package_hash` (optional string)
 
+#### `get_native_cspr_balance`
+Get the native CSPR balance for an account via the Casper node RPC.
+Returns balance in both motes (raw) and CSPR (human-readable). CEP-18 tokens are not included — use `get_token_balance` for those.
+- `account_public_key` (required string): hex public key with algorithm prefix (e.g. `01...` for Ed25519)
+
 ### Optional signer tool
 
 #### `sign_deploy`

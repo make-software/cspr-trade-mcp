@@ -13,7 +13,8 @@ describe('Account tools', () => {
     expect(names).toContain('get_swap_history');
     expect(names).toContain('get_portfolio_value');
     expect(names).toContain('get_position_status');
-    expect(names).toHaveLength(6);
+    expect(names).toContain('get_native_cspr_balance');
+    expect(names).toHaveLength(7);
   });
 
   it('get_token_balance calls client.getTokenBalance and returns JSON', async () => {

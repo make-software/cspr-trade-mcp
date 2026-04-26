@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CsprTradeClient } from '@make-software/cspr-trade-mcp-sdk';
+import {
+  validateAmount,
+  validateTokensNotEqual,
+  firstFailure,
+  validationErrorResponse,
+} from './validation.js';
 
 export function registerMarketDataTools(server: McpServer, client: CsprTradeClient) {
   server.tool(
@@ -58,6 +64,15 @@ export function registerMarketDataTools(server: McpServer, client: CsprTradeClie
       type: z.enum(['exact_in', 'exact_out']).describe('"exact_in" = specify input amount, "exact_out" = specify desired output amount'),
     },
     async ({ token_in, token_out, amount, type }) => {
+      // — Input Validation
+      const failure = firstFailure(
+        validateAmount(amount, 'amount'),
+        validateTokensNotEqual(token_in, token_out),
+      );
+      if (failure && !failure.valid) {
+        return validationErrorResponse(failure.error);
+      }
+
       const quote = await client.getQuote({ tokenIn: token_in, tokenOut: token_out, amount, type });
       return { content: [{ type: 'text' as const, text: JSON.stringify(quote, null, 2) }] };
     },

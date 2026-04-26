@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CsprTradeClient } from '@make-software/cspr-trade-mcp-sdk';
+import { validatePublicKey, validationErrorResponse } from './validation.js';
 
 export function registerAccountTools(server: McpServer, client: CsprTradeClient) {
   server.tool(
@@ -11,6 +12,12 @@ export function registerAccountTools(server: McpServer, client: CsprTradeClient)
       currency: z.string().optional().describe('Fiat currency code'),
     },
     async ({ account_public_key, currency }) => {
+      // — Input Validation
+      const check = validatePublicKey(account_public_key);
+      if (!check.valid) {
+        return validationErrorResponse(check.error);
+      }
+
       const positions = await client.getLiquidityPositions(account_public_key, currency);
       return { content: [{ type: 'text' as const, text: JSON.stringify(positions, null, 2) }] };
     },
@@ -24,6 +31,12 @@ export function registerAccountTools(server: McpServer, client: CsprTradeClient)
       pair: z.string().describe('Pair contract package hash'),
     },
     async ({ account_public_key, pair }) => {
+      // — Input Validation
+      const check = validatePublicKey(account_public_key);
+      if (!check.valid) {
+        return validationErrorResponse(check.error);
+      }
+
       const il = await client.getImpermanentLoss(account_public_key, pair);
       return { content: [{ type: 'text' as const, text: JSON.stringify(il, null, 2) }] };
     },
@@ -39,6 +52,14 @@ export function registerAccountTools(server: McpServer, client: CsprTradeClient)
       page_size: z.number().optional(),
     },
     async (args) => {
+      // — Input Validation (only if public_key provided)
+      if (args.public_key) {
+        const check = validatePublicKey(args.public_key);
+        if (!check.valid) {
+          return validationErrorResponse(check.error);
+        }
+      }
+
       const result = await client.getSwapHistory({
         publicKey: args.public_key,
         pairContractPackageHash: args.pair,

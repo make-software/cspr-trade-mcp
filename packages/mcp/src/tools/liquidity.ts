@@ -2,6 +2,13 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CsprTradeClient } from '@make-software/cspr-trade-mcp-sdk';
 import { writeDeployFile } from './deploy-file.js';
+import {
+  validateAmount,
+  validateSlippageBps,
+  validatePublicKey,
+  firstFailure,
+  validationErrorResponse,
+} from './validation.js';
 
 export function registerLiquidityTools(server: McpServer, client: CsprTradeClient) {
   server.tool(
@@ -19,6 +26,17 @@ export function registerLiquidityTools(server: McpServer, client: CsprTradeClien
       token_b_balance: z.string().optional().describe('Raw token B balance for one-time approval'),
     },
     async (args) => {
+      // — Input Validation
+      const failure = firstFailure(
+        validateAmount(args.amount_a, 'amount_a'),
+        validateAmount(args.amount_b, 'amount_b'),
+        validatePublicKey(args.sender_public_key),
+        ...(args.slippage_bps != null ? [validateSlippageBps(args.slippage_bps)] : []),
+      );
+      if (failure && !failure.valid) {
+        return validationErrorResponse(failure.error);
+      }
+
       const bundle = await client.buildAddLiquidity({
         tokenA: args.token_a,
         tokenB: args.token_b,
@@ -67,6 +85,15 @@ export function registerLiquidityTools(server: McpServer, client: CsprTradeClien
       sender_public_key: z.string().describe('Sender hex public key'),
     },
     async (args) => {
+      // — Input Validation
+      const failure = firstFailure(
+        validatePublicKey(args.sender_public_key),
+        ...(args.slippage_bps != null ? [validateSlippageBps(args.slippage_bps)] : []),
+      );
+      if (failure && !failure.valid) {
+        return validationErrorResponse(failure.error);
+      }
+
       const bundle = await client.buildRemoveLiquidity({
         pairContractPackageHash: args.pair,
         percentage: args.percentage,

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CsprTradeClient } from '@make-software/cspr-trade-mcp-sdk';
+import { withActionableErrors } from './errors.js';
 
 export function registerAccountTools(server: McpServer, client: CsprTradeClient) {
   server.tool(
@@ -9,10 +10,10 @@ export function registerAccountTools(server: McpServer, client: CsprTradeClient)
     {
       account_public_key: z.string().describe('Account public key (hex, with algorithm prefix e.g. "01abc..." for Ed25519 or "02abc..." for secp256k1)'),
     },
-    async ({ account_public_key }) => {
+    async ({ account_public_key }) => withActionableErrors({ account_public_key }, async ({ account_public_key }) => {
       const result = await client.getNativeCsprBalance(account_public_key);
       return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
-    },
+    }),
   );
 
   server.tool(
@@ -22,10 +23,10 @@ export function registerAccountTools(server: McpServer, client: CsprTradeClient)
       account_public_key: z.string().describe('Account public key (hex)'),
       token: z.string().optional().describe('Filter by token symbol, name, or contract package hash'),
     },
-    async ({ account_public_key, token }) => {
+    async ({ account_public_key, token }) => withActionableErrors({ account_public_key, token }, async ({ account_public_key, token }) => {
       const balances = await client.getTokenBalance(account_public_key, token);
       return { content: [{ type: 'text' as const, text: JSON.stringify(balances, null, 2) }] };
-    },
+    }),
   );
 
   server.tool(
@@ -35,10 +36,10 @@ export function registerAccountTools(server: McpServer, client: CsprTradeClient)
       account_public_key: z.string().describe('Account public key (hex)'),
       currency: z.string().optional().describe('Fiat currency code'),
     },
-    async ({ account_public_key, currency }) => {
+    async ({ account_public_key, currency }) => withActionableErrors({ account_public_key, currency }, async ({ account_public_key, currency }) => {
       const positions = await client.getLiquidityPositions(account_public_key, currency);
       return { content: [{ type: 'text' as const, text: JSON.stringify(positions, null, 2) }] };
-    },
+    }),
   );
 
   server.tool(
@@ -48,10 +49,10 @@ export function registerAccountTools(server: McpServer, client: CsprTradeClient)
       account_public_key: z.string().describe('Account public key (hex)'),
       pair: z.string().describe('Pair contract package hash'),
     },
-    async ({ account_public_key, pair }) => {
+    async ({ account_public_key, pair }) => withActionableErrors({ account_public_key, pair }, async ({ account_public_key, pair }) => {
       const il = await client.getImpermanentLoss(account_public_key, pair);
       return { content: [{ type: 'text' as const, text: JSON.stringify(il, null, 2) }] };
-    },
+    }),
   );
 
   server.tool(
@@ -63,7 +64,7 @@ export function registerAccountTools(server: McpServer, client: CsprTradeClient)
       page: z.number().optional(),
       page_size: z.number().optional(),
     },
-    async (args) => {
+    async (args) => withActionableErrors(args, async (args) => {
       const result = await client.getSwapHistory({
         publicKey: args.public_key,
         pairContractPackageHash: args.pair,
@@ -71,7 +72,7 @@ export function registerAccountTools(server: McpServer, client: CsprTradeClient)
         pageSize: args.page_size,
       });
       return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
-    },
+    }),
   );
 
   server.tool(
@@ -81,10 +82,10 @@ export function registerAccountTools(server: McpServer, client: CsprTradeClient)
       account_public_key: z.string().describe('Account public key (hex)'),
       currency: z.string().optional().describe('Fiat currency code (e.g. USD)'),
     },
-    async ({ account_public_key, currency }) => {
+    async ({ account_public_key, currency }) => withActionableErrors({ account_public_key, currency }, async ({ account_public_key, currency }) => {
       const result = await client.getPortfolioValue(account_public_key, currency);
       return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
-    },
+    }),
   );
 
   server.tool(
@@ -94,9 +95,9 @@ export function registerAccountTools(server: McpServer, client: CsprTradeClient)
       account_public_key: z.string().describe('Account public key (hex)'),
       pair_contract_package_hash: z.string().optional().describe('Filter by specific pair contract package hash'),
     },
-    async ({ account_public_key, pair_contract_package_hash }) => {
+    async ({ account_public_key, pair_contract_package_hash }) => withActionableErrors({ account_public_key, pair_contract_package_hash }, async ({ account_public_key, pair_contract_package_hash }) => {
       const result = await client.getPositionStatus(account_public_key, pair_contract_package_hash);
       return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
-    },
+    }),
   );
 }

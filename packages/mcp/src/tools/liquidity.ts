@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CsprTradeClient } from '@make-software/cspr-trade-mcp-sdk';
 import { formatDeployArtifact, isDeployFileInputEnabled } from './deploy-file.js';
+import { withActionableErrors } from './errors.js';
 
 export function registerLiquidityTools(server: McpServer, client: CsprTradeClient) {
   server.tool(
@@ -18,7 +19,7 @@ export function registerLiquidityTools(server: McpServer, client: CsprTradeClien
       token_a_balance: z.string().optional().describe('Raw token A balance for one-time approval'),
       token_b_balance: z.string().optional().describe('Raw token B balance for one-time approval'),
     },
-    async (args) => {
+    async (args) => withActionableErrors(args, async (args) => {
       const bundle = await client.buildAddLiquidity({
         tokenA: args.token_a,
         tokenB: args.token_b,
@@ -55,7 +56,7 @@ export function registerLiquidityTools(server: McpServer, client: CsprTradeClien
       }
 
       return { content: [{ type: 'text' as const, text: parts.join('\n') }] };
-    },
+    }),
   );
 
   server.tool(
@@ -68,7 +69,7 @@ export function registerLiquidityTools(server: McpServer, client: CsprTradeClien
       deadline_minutes: z.number().optional().describe('Deadline in minutes (default 20)'),
       sender_public_key: z.string().describe('Sender hex public key'),
     },
-    async (args) => {
+    async (args) => withActionableErrors(args, async (args) => {
       const bundle = await client.buildRemoveLiquidity({
         pairContractPackageHash: args.pair,
         percentage: args.percentage,
@@ -77,6 +78,6 @@ export function registerLiquidityTools(server: McpServer, client: CsprTradeClien
         senderPublicKey: args.sender_public_key,
       });
       return { content: [{ type: 'text' as const, text: bundle.summary + `\n\n${await formatDeployArtifact('Unsigned transaction', bundle.transactionJson)}` }] };
-    },
+    }),
   );
 }

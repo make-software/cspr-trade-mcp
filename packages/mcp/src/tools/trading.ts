@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CsprTradeClient } from '@make-software/cspr-trade-mcp-sdk';
 import { formatDeployArtifact, getDeployInputDescription, isDeployFileInputEnabled, readDeployJson } from './deploy-file.js';
+import { withActionableErrors } from './errors.js';
 
 export function registerTradingTools(server: McpServer, client: CsprTradeClient) {
   server.tool(
@@ -17,7 +18,7 @@ export function registerTradingTools(server: McpServer, client: CsprTradeClient)
       sender_public_key: z.string().describe('Sender hex public key (e.g., "01abc...")'),
       token_in_balance: z.string().optional().describe('Raw input token balance for one-time approval (e.g., from wallet). If omitted, approves exact swap amount only.'),
     },
-    async (args) => {
+    async (args) => withActionableErrors(args, async (args) => {
       const bundle = await client.buildSwap({
         tokenIn: args.token_in,
         tokenOut: args.token_out,
@@ -63,7 +64,7 @@ export function registerTradingTools(server: McpServer, client: CsprTradeClient)
       }
 
       return { content: [{ type: 'text' as const, text: parts.join('\n') }] };
-    },
+    }),
   );
 
   server.tool(
@@ -75,7 +76,7 @@ export function registerTradingTools(server: McpServer, client: CsprTradeClient)
       sender_public_key: z.string().describe('Sender hex public key'),
       spender: z.string().optional().describe('Spender contract package hash (defaults to CSPR.trade router)'),
     },
-    async (args) => {
+    async (args) => withActionableErrors(args, async (args) => {
       const bundle = await client.buildApproval({
         tokenContractPackageHash: args.token,
         spenderPackageHash: args.spender ?? '',
@@ -83,7 +84,7 @@ export function registerTradingTools(server: McpServer, client: CsprTradeClient)
         senderPublicKey: args.sender_public_key,
       });
       return { content: [{ type: 'text' as const, text: bundle.summary + `\n\n${await formatDeployArtifact('Unsigned transaction', bundle.transactionJson)}` }] };
-    },
+    }),
   );
 
   server.tool(
@@ -92,10 +93,10 @@ export function registerTradingTools(server: McpServer, client: CsprTradeClient)
     {
       signed_deploy_json: z.string().describe(getDeployInputDescription('signed')),
     },
-    async ({ signed_deploy_json }) => {
+    async ({ signed_deploy_json }) => withActionableErrors({ signed_deploy_json }, async ({ signed_deploy_json }) => {
       const json = await readDeployJson(signed_deploy_json);
       const result = await client.submitTransaction(json);
       return { content: [{ type: 'text' as const, text: `Transaction submitted. Hash: ${result.transactionHash}` }] };
-    },
+    }),
   );
 }

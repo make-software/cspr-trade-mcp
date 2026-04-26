@@ -1,16 +1,17 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CsprTradeClient } from '@make-software/cspr-trade-mcp-sdk';
+import { withActionableErrors } from './errors.js';
 
 export function registerMarketDataTools(server: McpServer, client: CsprTradeClient) {
   server.tool(
     'get_tokens',
     'List all tradable tokens on CSPR.trade with optional fiat pricing',
     { currency: z.string().optional().describe('Fiat currency code (e.g., "USD", "EUR"). Omit for no fiat prices.') },
-    async ({ currency }) => {
+    async ({ currency }) => withActionableErrors({ currency }, async ({ currency }) => {
       const tokens = await client.getTokens(currency);
       return { content: [{ type: 'text' as const, text: JSON.stringify(tokens, null, 2) }] };
-    },
+    }),
   );
 
   server.tool(
@@ -23,7 +24,7 @@ export function registerMarketDataTools(server: McpServer, client: CsprTradeClie
       order_direction: z.enum(['asc', 'desc']).optional(),
       currency: z.string().optional().describe('Fiat currency code for pricing'),
     },
-    async (args) => {
+    async (args) => withActionableErrors(args, async (args) => {
       const result = await client.getPairs({
         page: args.page,
         pageSize: args.page_size,
@@ -32,7 +33,7 @@ export function registerMarketDataTools(server: McpServer, client: CsprTradeClie
         currency: args.currency,
       });
       return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
-    },
+    }),
   );
 
   server.tool(
@@ -42,10 +43,10 @@ export function registerMarketDataTools(server: McpServer, client: CsprTradeClie
       pair: z.string().describe('Pair contract package hash (e.g., "hash-abc123...")'),
       currency: z.string().optional().describe('Fiat currency code'),
     },
-    async ({ pair, currency }) => {
+    async ({ pair, currency }) => withActionableErrors({ pair, currency }, async ({ pair, currency }) => {
       const result = await client.getPairDetails(pair, currency);
       return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
-    },
+    }),
   );
 
   server.tool(
@@ -57,20 +58,20 @@ export function registerMarketDataTools(server: McpServer, client: CsprTradeClie
       amount: z.string().describe('Human-readable amount (e.g., "100" for 100 CSPR)'),
       type: z.enum(['exact_in', 'exact_out']).describe('"exact_in" = specify input amount, "exact_out" = specify desired output amount'),
     },
-    async ({ token_in, token_out, amount, type }) => {
+    async ({ token_in, token_out, amount, type }) => withActionableErrors({ token_in, token_out, amount, type }, async ({ token_in, token_out, amount, type }) => {
       const quote = await client.getQuote({ tokenIn: token_in, tokenOut: token_out, amount, type });
       return { content: [{ type: 'text' as const, text: JSON.stringify(quote, null, 2) }] };
-    },
+    }),
   );
 
   server.tool(
     'get_currencies',
     'List supported fiat currencies for price display',
     {},
-    async () => {
+    async () => withActionableErrors({}, async () => {
       const currencies = await client.getCurrencies();
       return { content: [{ type: 'text' as const, text: JSON.stringify(currencies, null, 2) }] };
-    },
+    }),
   );
 
   server.tool(
@@ -81,10 +82,10 @@ export function registerMarketDataTools(server: McpServer, client: CsprTradeClie
       interval: z.enum(['1h', '4h', '1d']).optional().describe('Candle interval (default "1h")'),
       limit: z.number().optional().describe('Number of candles to return (default 24, max 200)'),
     },
-    async ({ pair, interval, limit }) => {
+    async ({ pair, interval, limit }) => withActionableErrors({ pair, interval, limit }, async ({ pair, interval, limit }) => {
       const candles = await client.getPairPriceHistory(pair, interval, limit);
       return { content: [{ type: 'text' as const, text: JSON.stringify(candles, null, 2) }] };
-    },
+    }),
   );
 
   server.tool(
@@ -95,9 +96,9 @@ export function registerMarketDataTools(server: McpServer, client: CsprTradeClie
       interval: z.enum(['1h', '4h', '1d']).optional().describe('Candle interval (default "1h")'),
       limit: z.number().optional().describe('Number of candles to return (default 24, max 200)'),
     },
-    async ({ token, interval, limit }) => {
+    async ({ token, interval, limit }) => withActionableErrors({ token, interval, limit }, async ({ token, interval, limit }) => {
       const result = await client.getTokenPriceHistory(token, interval, limit);
       return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
-    },
+    }),
   );
 }

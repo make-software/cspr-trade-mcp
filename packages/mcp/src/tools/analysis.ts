@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CsprTradeClient } from '@make-software/cspr-trade-mcp-sdk';
+import { withActionableErrors } from './errors.js';
 
 export function registerAnalysisTools(server: McpServer, client: CsprTradeClient) {
   server.tool(
@@ -11,7 +12,7 @@ export function registerAnalysisTools(server: McpServer, client: CsprTradeClient
       token_out: z.string().describe('Output token symbol (e.g., "USDT")'),
       amount: z.string().describe('Human-readable input amount (e.g., "1000")'),
     },
-    async (args) => {
+    async (args) => withActionableErrors(args, async (args) => {
       const result = await client.estimatePriceImpact({
         tokenIn: args.token_in,
         tokenOut: args.token_out,
@@ -29,7 +30,7 @@ export function registerAnalysisTools(server: McpServer, client: CsprTradeClient
       if (result.warning) lines.push(`\n⚠️ ${result.warning}`);
 
       return { content: [{ type: 'text' as const, text: lines.join('\n') }] };
-    },
+    }),
   );
 
   server.tool(
@@ -41,7 +42,7 @@ export function registerAnalysisTools(server: McpServer, client: CsprTradeClient
       amount: z.string().describe('Human-readable input amount (e.g., "1000")'),
       slippage_tolerance_bps: z.number().optional().describe('Your slippage tolerance in bps (default 300 = 3%)'),
     },
-    async (args) => {
+    async (args) => withActionableErrors(args, async (args) => {
       const result = await client.estimateSlippage({
         tokenIn: args.token_in,
         tokenOut: args.token_out,
@@ -65,7 +66,7 @@ export function registerAnalysisTools(server: McpServer, client: CsprTradeClient
       }
 
       return { content: [{ type: 'text' as const, text: lines.join('\n') }] };
-    },
+    }),
   );
 
   server.tool(
@@ -77,7 +78,7 @@ export function registerAnalysisTools(server: McpServer, client: CsprTradeClient
       amount: z.string().describe('Human-readable input amount'),
       slippage_tolerance_bps: z.number().optional().describe('Slippage tolerance in bps (default 300 = 3%)'),
     },
-    async (args) => {
+    async (args) => withActionableErrors(args, async (args) => {
       const result = await client.analyzeTrade({
         tokenIn: args.token_in,
         tokenOut: args.token_out,
@@ -103,7 +104,7 @@ export function registerAnalysisTools(server: McpServer, client: CsprTradeClient
       }
 
       return { content: [{ type: 'text' as const, text: lines.join('\n') }] };
-    },
+    }),
   );
 
   server.tool(
@@ -114,7 +115,7 @@ export function registerAnalysisTools(server: McpServer, client: CsprTradeClient
       token_b: z.string().describe('Second token symbol (e.g., "USDT")'),
       amount_a: z.string().describe('Human-readable amount of token A to deposit'),
     },
-    async (args) => {
+    async (args) => withActionableErrors(args, async (args) => {
       const result = await client.getOptimalLiquidityAmounts({
         tokenA: args.token_a,
         tokenB: args.token_b,
@@ -134,6 +135,6 @@ export function registerAnalysisTools(server: McpServer, client: CsprTradeClient
       }
 
       return { content: [{ type: 'text' as const, text: lines.join('\n') }] };
-    },
+    }),
   );
 }

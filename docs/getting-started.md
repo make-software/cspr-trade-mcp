@@ -146,3 +146,23 @@ If you configure a separate `cspr-signer` MCP instance, the agent can call `sign
 - **[Agent Guide](/docs/agent)** — Detailed workflow guide for AI agents using these tools
 - **[Self-Hosting](/docs/self-hosting)** — Run your own MCP server with the npm packages
 - **[SDK Reference](/docs/sdk)** — Use the TypeScript SDK directly in your own code
+
+## TypeScript Type Imports
+
+All public types are exported from the package root, enabling clean type-only imports:
+
+```typescript
+import type {
+  CsprTradeClientConfig,
+  SwapParams, QuoteParams, Quote,
+  PairQuery, PaginatedResult, Pair,
+  Token, TokenBalance, NativeCsprBalance,
+  TradeAnalysis, PriceImpactEstimate, SlippageEstimate,
+  OHLCVCandle, PriceHistoryInterval,
+  LiquidityPosition, AddLiquidityParams,
+  QuoteApiParams,
+} from '@make-software/cspr-trade-mcp-sdk';
+```
+
+These types are useful when building typed wrappers around the SDK or when passing parameters
+to functions that accept SDK types.

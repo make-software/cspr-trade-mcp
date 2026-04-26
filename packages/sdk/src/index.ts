@@ -14,3 +14,5 @@ export {
   type TradeAnalysis,
 } from './analysis/trade-analysis.js';
 export { aggregateOHLCV, type RawSwap } from './analysis/price-history.js';
+export { type PairQuery, type PaginatedResult } from './api/pairs.js';
+export { type QuoteApiParams } from './api/quotes.js';

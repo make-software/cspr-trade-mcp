@@ -33,7 +33,7 @@ describe('Liquidity tools', () => {
       token_b: 'USDT',
       amount_a: '100',
       amount_b: '50',
-      sender_public_key: '01abc123',
+      sender_public_key: '01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       slippage_bps: 200,
       deadline_minutes: 30,
     });
@@ -43,7 +43,7 @@ describe('Liquidity tools', () => {
       tokenB: 'USDT',
       amountA: '100',
       amountB: '50',
-      senderPublicKey: '01abc123',
+      senderPublicKey: '01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       slippageBps: 200,
       deadlineMinutes: 30,
       tokenABalance: undefined,
@@ -78,7 +78,7 @@ describe('Liquidity tools', () => {
       token_b: 'USDT',
       amount_a: '100',
       amount_b: '50',
-      sender_public_key: '01abc123',
+      sender_public_key: '01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       token_a_balance: '1000000000000',
     });
 
@@ -104,7 +104,7 @@ describe('Liquidity tools', () => {
     const result = await handler({
       pair: 'hash-abc123',
       percentage: 50,
-      sender_public_key: '01abc123',
+      sender_public_key: '01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       slippage_bps: 300,
       deadline_minutes: 20,
     });
@@ -112,7 +112,7 @@ describe('Liquidity tools', () => {
     expect(mockClient.buildRemoveLiquidity).toHaveBeenCalledWith({
       pairContractPackageHash: 'hash-abc123',
       percentage: 50,
-      senderPublicKey: '01abc123',
+      senderPublicKey: '01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       slippageBps: 300,
       deadlineMinutes: 20,
     });

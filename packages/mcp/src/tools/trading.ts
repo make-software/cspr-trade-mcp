@@ -3,6 +3,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CsprTradeClient } from '@make-software/cspr-trade-mcp-sdk';
 import { formatDeployArtifact, getDeployInputDescription, isDeployFileInputEnabled, readDeployJson } from './deploy-file.js';
 import { withActionableErrors } from './errors.js';
+import { validateAmount, validatePublicKey, validateSlippageBps, validateTokensNotEqual, validationErrorResponse } from './validation.js';
 
 export function registerTradingTools(server: McpServer, client: CsprTradeClient) {
   server.tool(
@@ -19,6 +20,16 @@ export function registerTradingTools(server: McpServer, client: CsprTradeClient)
       token_in_balance: z.string().optional().describe('Raw input token balance for one-time approval (e.g., from wallet). If omitted, approves exact swap amount only.'),
     },
     async (args) => withActionableErrors(args, async (args) => {
+      const amountErr = validateAmount(args.amount, 'amount');
+      if (amountErr) return validationErrorResponse(amountErr);
+      const pkErr = validatePublicKey(args.sender_public_key);
+      if (pkErr) return validationErrorResponse(pkErr);
+      const tokenErr = validateTokensNotEqual(args.token_in, args.token_out);
+      if (tokenErr) return validationErrorResponse(tokenErr);
+      if (args.slippage_bps !== undefined) {
+        const slipErr = validateSlippageBps(args.slippage_bps);
+        if (slipErr) return validationErrorResponse(slipErr);
+      }
       const bundle = await client.buildSwap({
         tokenIn: args.token_in,
         tokenOut: args.token_out,
@@ -77,6 +88,10 @@ export function registerTradingTools(server: McpServer, client: CsprTradeClient)
       spender: z.string().optional().describe('Spender contract package hash (defaults to CSPR.trade router)'),
     },
     async (args) => withActionableErrors(args, async (args) => {
+      const amountErr = validateAmount(args.amount, 'amount');
+      if (amountErr) return validationErrorResponse(amountErr);
+      const pkErr = validatePublicKey(args.sender_public_key);
+      if (pkErr) return validationErrorResponse(pkErr);
       const bundle = await client.buildApproval({
         tokenContractPackageHash: args.token,
         spenderPackageHash: args.spender ?? '',

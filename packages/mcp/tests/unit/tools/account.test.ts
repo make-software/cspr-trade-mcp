@@ -29,9 +29,9 @@ describe('Account tools', () => {
     const call = mockServer.tool.mock.calls.find((c: any[]) => c[0] === 'get_token_balance');
     expect(call).toBeDefined();
     const handler = call![3];
-    const result = await handler({ account_public_key: '01abc123', token: 'USDT' });
+    const result = await handler({ account_public_key: '01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', token: 'USDT' });
 
-    expect(mockClient.getTokenBalance).toHaveBeenCalledWith('01abc123', 'USDT');
+    expect(mockClient.getTokenBalance).toHaveBeenCalledWith('01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'USDT');
     expect(result.content[0].text).toContain('USDT');
   });
 
@@ -48,14 +48,14 @@ describe('Account tools', () => {
     expect(call).toBeDefined();
     const handler = call![3];
     const result = await handler({
-      public_key: '01abc123',
+      public_key: '01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       pair: 'hash-pair123',
       page: 1,
       page_size: 10,
     });
 
     expect(mockClient.getSwapHistory).toHaveBeenCalledWith({
-      publicKey: '01abc123',
+      publicKey: '01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       pairContractPackageHash: 'hash-pair123',
       page: 1,
       pageSize: 10,
@@ -75,9 +75,9 @@ describe('Account tools', () => {
     const call = mockServer.tool.mock.calls.find((c: any[]) => c[0] === 'get_liquidity_positions');
     expect(call).toBeDefined();
     const handler = call![3];
-    const result = await handler({ account_public_key: '01abc123', currency: 'USD' });
+    const result = await handler({ account_public_key: '01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', currency: 'USD' });
 
-    expect(mockClient.getLiquidityPositions).toHaveBeenCalledWith('01abc123', 'USD');
+    expect(mockClient.getLiquidityPositions).toHaveBeenCalledWith('01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'USD');
     expect(result.content[0].text).toContain('CSPR/USDT');
   });
 
@@ -93,9 +93,9 @@ describe('Account tools', () => {
     const call = mockServer.tool.mock.calls.find((c: any[]) => c[0] === 'get_portfolio_value');
     expect(call).toBeDefined();
     const handler = call![3];
-    const result = await handler({ account_public_key: '01abc123', currency: 'USD' });
+    const result = await handler({ account_public_key: '01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', currency: 'USD' });
 
-    expect(mockClient.getPortfolioValue).toHaveBeenCalledWith('01abc123', 'USD');
+    expect(mockClient.getPortfolioValue).toHaveBeenCalledWith('01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'USD');
     expect(result.content[0].text).toContain('125.00');
   });
 
@@ -111,9 +111,9 @@ describe('Account tools', () => {
     const call = mockServer.tool.mock.calls.find((c: any[]) => c[0] === 'get_impermanent_loss');
     expect(call).toBeDefined();
     const handler = call![3];
-    const result = await handler({ account_public_key: '01abc123', pair: 'hash-pair456' });
+    const result = await handler({ account_public_key: '01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', pair: 'hash-pair456' });
 
-    expect(mockClient.getImpermanentLoss).toHaveBeenCalledWith('01abc123', 'hash-pair456');
+    expect(mockClient.getImpermanentLoss).toHaveBeenCalledWith('01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'hash-pair456');
     expect(result.content[0].text).toContain('2.3');
   });
 
@@ -130,11 +130,11 @@ describe('Account tools', () => {
     expect(call).toBeDefined();
     const handler = call![3];
     const result = await handler({
-      account_public_key: '01abc123',
+      account_public_key: '01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       pair_contract_package_hash: 'hash-pair789',
     });
 
-    expect(mockClient.getPositionStatus).toHaveBeenCalledWith('01abc123', 'hash-pair789');
+    expect(mockClient.getPositionStatus).toHaveBeenCalledWith('01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'hash-pair789');
     expect(result.content[0].text).toContain('CSPR/USDT');
   });
 });

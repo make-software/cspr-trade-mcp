@@ -1,6 +1,6 @@
 # CSPR.trade MCP — Community Metrics
 
-_Last updated: 2026-04-25 (AM cycle)_
+_Last updated: 2026-04-26 (cron cycle)
 
 ## npm Downloads (last 30 days)
 
@@ -45,3 +45,14 @@ curl -s 'https://api.github.com/repos/make-software/cspr-trade-mcp' | python3 -c
 - dev.to posting blocked: no dev.to API key in ~/.hermes/.secrets/ — Michael needs to add it
 - JeanClawd not in Casper Discord server — Discord posting requires join link or Michael posts directly
 - Task #881 remains needs_input until at least one channel can be executed
+
+## 2026-04-26 Update (cron cycle)
+
+| Package | Downloads (last 30d) |
+|---------|---------------------|
+| `@make-software/cspr-trade-mcp` | 524 |
+| `@make-software/cspr-trade-mcp-sdk` | 588 |
+
+GitHub: 1 star, 1 fork, 1 open issue, 1 watcher
+
+_No announcement campaign active. Organic growth only. Post-v0.5 DX release (validation + type exports + actionable errors)._

@@ -30,16 +30,16 @@ describe('built site content', () => {
     expect(html).toContain('Connect Now');
   });
 
-  testIfBuilt('landing page uses a consistent 22-public-tool count in hero, cards, and metadata', () => {
+  testIfBuilt('landing page uses a consistent 24-public-tool count in hero, cards, and metadata', () => {
     const html = readBuiltPage('index.html');
 
-    expect(html).toContain('One endpoint. 22 public tools.');
-    expect(html).toContain('22 Public MCP Tools');
+    expect(html).toContain('One endpoint. 24 public tools.');
+    expect(html).toContain('24 Public MCP Tools');
     expect(html).toContain('property="og:description"');
-    expect(html).toContain('content="Connect your AI agent to CSPR.trade DEX on the Casper Network. One endpoint, 22 public MCP tools, non-custodial."');
+    expect(html).toContain('content="Connect your AI agent to CSPR.trade DEX on the Casper Network. One endpoint, 24 public MCP tools, non-custodial."');
     expect(html).not.toContain('14 MCP tools');
     expect(html).not.toContain('18 MCP Tools');
-    expect(html).not.toContain('21 MCP tools');
+    expect(html).not.toContain('22 MCP tools');
   });
 
   testIfBuilt('getting started page focuses on public endpoint connection', () => {

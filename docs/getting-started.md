@@ -10,7 +10,7 @@ A production MCP server is live at:
 https://mcp.cspr.trade/mcp
 ```
 
-This is a Streamable HTTP endpoint on Casper **mainnet**. It exposes **22 public tools** for market data, price history, swaps, liquidity, trade analysis, and account queries — ready for any MCP-compatible client.
+This is a Streamable HTTP endpoint on Casper **mainnet**. It exposes **24 public tools** for market data, price history, swaps, liquidity, trade analysis, and account queries — ready for any MCP-compatible client.
 
 Health check: [`https://mcp.cspr.trade/health`](https://mcp.cspr.trade/health)
 
@@ -54,7 +54,7 @@ Install the skill from [ClawHub](https://clawhub.com):
 npx clawhub@latest install cspr-trade-mcp
 ```
 
-This installs a complete agent skill with workflow instructions — intent classification, quote-before-swap patterns, pre-trade analysis, price-impact warnings, signing flows, price-history lookups, and error handling. Your agent reads it and knows how to use all **22 public tools** correctly.
+This installs a complete agent skill with workflow instructions — intent classification, quote-before-swap patterns, pre-trade analysis, price-impact warnings, signing flows, price-history lookups, and error handling. Your agent reads it and knows how to use all **24 public tools** correctly.
 
 Alternatively, point your agent at the raw SKILL.md:
 
@@ -76,7 +76,7 @@ The server speaks **Streamable HTTP** (the standard MCP HTTP transport). No API 
 
 ## What You Can Do
 
-Once connected, your agent has access to **22 public tools**:
+Once connected, your agent has access to **24 public tools**:
 
 ### Market Data (read-only, no wallet needed)
 - **`get_tokens`** — List tradable tokens with optional fiat pricing

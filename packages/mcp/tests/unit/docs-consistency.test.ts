@@ -39,7 +39,7 @@ describe('documentation consistency', () => {
   });
 
   it('public docs and site assets use the current tool counts', () => {
-    const filesExpectingPublic22 = [
+    const filesExpectingPublic24 = [
       'README.md',
       'docs/getting-started.md',
       'docs/self-hosting.md',
@@ -49,10 +49,10 @@ describe('documentation consistency', () => {
       'packages/site/src/pages/index.astro',
     ];
 
-    for (const relativePath of filesExpectingPublic22) {
+    for (const relativePath of filesExpectingPublic24) {
       const content = readRepoFile(relativePath);
-      expect(content, relativePath).toContain('22');
-      expect(content, relativePath).not.toContain('21 tools');
+      expect(content, relativePath).toContain('24');
+      expect(content, relativePath).not.toContain('22 tools');
       expect(content, relativePath).not.toContain('21 MCP tools');
       expect(content, relativePath).not.toContain('21 MCP Tools');
       expect(content, relativePath).not.toContain('18 MCP Tools');

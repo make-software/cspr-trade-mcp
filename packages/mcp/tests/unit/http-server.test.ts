@@ -101,7 +101,7 @@ describe('HTTP server bootstrap', () => {
     const payload = JSON.parse(res.end.mock.calls[0][0]);
     expect(payload).toMatchObject({
       status: 'ok',
-      version: '0.4.2',
+      version: '0.5.0',
       transport: 'http',
       fileDeployInputEnabled: true,
     });

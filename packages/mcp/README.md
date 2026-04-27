@@ -70,7 +70,7 @@ By default, deploy handoff is JSON-only. Enable `CSPR_TRADE_ENABLE_FILE_DEPLOY_I
 
 ## Tool counts
 
-- **Main server only:** 22 public tools
+- **Main server only:** 24 public tools
 - **Main server + signer:** 23 total tools
 
 ## Tools

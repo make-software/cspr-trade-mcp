@@ -26,11 +26,11 @@ Add to Claude Desktop, Cursor, or any MCP client config:
 }
 ```
 
-That's it. Your agent now has access to **22 public tools** for market data, swaps, liquidity management, trade analysis, portfolio tracking, and account queries on the Casper Network.
+That's it. Your agent now has access to **24 public tools** for market data, swaps, liquidity management, trade analysis, portfolio tracking, and account queries on the Casper Network.
 
 ## What's Available
 
-### Public MCP surface: 22 tools
+### Public MCP surface: 24 tools
 
 | Category | Tools | Wallet Required |
 |----------|-------|----------------|
@@ -86,7 +86,7 @@ See the [Self-Hosting guide](https://mcp.cspr.trade/docs/self-hosting) for HTTP 
 
 | Package | Description |
 |---------|-------------|
-| [`@make-software/cspr-trade-mcp`](https://www.npmjs.com/package/@make-software/cspr-trade-mcp) | MCP server — 22 public tools over stdio or HTTP, plus optional `sign_deploy` in local signer mode |
+| [`@make-software/cspr-trade-mcp`](https://www.npmjs.com/package/@make-software/cspr-trade-mcp) | MCP server — 24 public tools over stdio or HTTP, plus optional `sign_deploy` in local signer mode |
 | [`@make-software/cspr-trade-mcp-sdk`](https://www.npmjs.com/package/@make-software/cspr-trade-mcp-sdk) | TypeScript SDK — market data, price history, quotes, analysis, and transaction building |
 
 ## Development

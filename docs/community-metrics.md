@@ -56,3 +56,14 @@ curl -s 'https://api.github.com/repos/make-software/cspr-trade-mcp' | python3 -c
 GitHub: 1 star, 1 fork, 1 open issue, 1 watcher
 
 _No announcement campaign active. Organic growth only. Post-v0.5 DX release (validation + type exports + actionable errors)._
+
+## 2026-04-27 Update (cron cycle)
+
+| Package | Downloads (last 30d) |
+|---------|---------------------|
+| `@make-software/cspr-trade-mcp` | 532 |
+| `@make-software/cspr-trade-mcp-sdk` | 593 |
+
+GitHub: 1 star, 1 fork, 1 open issue, 1 watcher
+
+_Slow organic growth (+8/+5 in 24h). No announcement campaign active. All distribution channels blocked (xurl OAuth, dev.to API key, Discord join). Tasks #881/#900 remain blocked on Michael action._

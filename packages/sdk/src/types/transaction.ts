@@ -69,6 +69,10 @@ export interface SwapHistoryQuery {
   pairContractPackageHash?: string;
   page?: number;
   pageSize?: number;
+  /** Sort field — currently only 'timestamp' is supported */
+  orderBy?: 'timestamp';
+  /** Sort direction (default: 'desc' — newest first) */
+  orderDirection?: 'asc' | 'desc';
 }
 
 /** OHLCV candlestick data for a trading pair */

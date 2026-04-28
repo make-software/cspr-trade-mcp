@@ -63,6 +63,8 @@ export function registerAccountTools(server: McpServer, client: CsprTradeClient)
       pair: z.string().optional().describe('Filter by pair contract package hash'),
       page: z.number().optional(),
       page_size: z.number().optional(),
+      order_by: z.enum(['timestamp']).optional().describe('Sort field (default: timestamp)'),
+      order_direction: z.enum(['asc', 'desc']).optional().describe('Sort direction: "asc" (oldest first) or "desc" (newest first, default)'),
     },
     async (args) => withActionableErrors(args, async (args) => {
       const result = await client.getSwapHistory({
@@ -70,6 +72,8 @@ export function registerAccountTools(server: McpServer, client: CsprTradeClient)
         pairContractPackageHash: args.pair,
         page: args.page,
         pageSize: args.page_size,
+        orderBy: args.order_by,
+        orderDirection: args.order_direction,
       });
       return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
     }),

@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-04-28
+
+### Added
+- `get_swap_history` tool: `order_by` and `order_direction` params — sort swap history asc (oldest first) or desc (newest first, default)
+- SDK `SwapHistoryQuery` type: added `orderBy` / `orderDirection` fields passed through to the API
+- Deep health endpoint `GET /health?deep=1` — checks Casper RPC connectivity and CSPR.trade API reachability (delivered in v0.6.0 review commit, documented here)
+
 ## [0.6.0] - 2026-04-27
 
 ### Added

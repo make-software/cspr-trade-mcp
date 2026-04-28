@@ -367,6 +367,8 @@ export class CsprTradeClient {
       pairContractPackageHash: opts?.pairContractPackageHash,
       page: opts?.page,
       pageSize: opts?.pageSize,
+      orderBy: opts?.orderBy,
+      orderDirection: opts?.orderDirection,
     });
   }
 

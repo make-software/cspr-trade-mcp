@@ -10,7 +10,7 @@ import { registerAnalysisTools } from './tools/analysis.js';
 import { registerSignerTools } from './tools/signer.js';
 
 const _require = createRequire(import.meta.url);
-const { version } = _require('../package.json') as { version: string };
+export const { version } = _require('../package.json') as { version: string };
 
 export function createServer(config: CsprTradeClientConfig): McpServer {
   const client = new CsprTradeClient(config);

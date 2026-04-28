@@ -24,6 +24,7 @@ const createMcpExpressAppMock = vi.fn(() => ({
 vi.mock('../../src/server.js', () => ({
   createServer: createServerMock,
   createSignerServer: createSignerServerMock,
+  version: '0.6.0',
 }));
 
 vi.mock('@modelcontextprotocol/sdk/server/express.js', () => ({

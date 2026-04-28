@@ -1,13 +1,9 @@
 #!/usr/bin/env node
-import { createRequire } from 'module';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import type { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import type { Request, Response } from 'express';
-import { createServer, createSignerServer } from './server.js';
+import { createServer, createSignerServer, version } from './server.js';
 import { isDeployFileInputEnabled } from './tools/deploy-file.js';
-
-const _require = createRequire(import.meta.url);
-const { version } = _require('../package.json') as { version: string };
 
 const signerMode = process.argv.includes('--signer');
 const network = (process.env.CSPR_TRADE_NETWORK as 'mainnet' | 'testnet') ?? 'mainnet';

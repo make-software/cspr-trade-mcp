@@ -1,6 +1,6 @@
 # CSPR.trade MCP Server
 
-> CSPR.trade is a decentralized exchange (DEX) on the Casper Network, forked from Uniswap V2. This MCP integration exposes **22 public tools** for market data, price history, trading, liquidity, trade analysis, and account queries, plus an optional **23rd tool** (`sign_deploy`) when a local signer is configured.
+> CSPR.trade is a decentralized exchange (DEX) on the Casper Network, forked from Uniswap V2. This MCP integration exposes **24 tools** for market data, price history, trading, liquidity, trade analysis, account queries, and native CSPR balance — including an optional `sign_deploy` tool when a local signer is configured.
 
 ## Protocol Overview
 
@@ -8,7 +8,7 @@ CSPR.trade is an automated market maker (AMM) DEX on the Casper blockchain. User
 
 ## MCP Server
 
-The `@make-software/cspr-trade-mcp` server exposes 22 public tools over MCP. It supports stdio transport (local) and Streamable HTTP transport (remote), and wraps the `@make-software/cspr-trade-mcp-sdk` TypeScript SDK.
+The `@make-software/cspr-trade-mcp` server exposes 24 tools over MCP. It supports stdio transport (local) and Streamable HTTP transport (remote), and wraps the `@make-software/cspr-trade-mcp-sdk` TypeScript SDK.
 
 ### Configuration
 
@@ -53,7 +53,26 @@ Set environment variables before starting:
 }
 ```
 
-With both servers configured, the agent has 23 total tools across the full setup.
+With both servers configured, the agent has 24 total tools across the full setup.
+
+## Token Identification
+
+Tokens are identified by symbol, name, or contract hash. Common mainnet tokens:
+- **CSPR** — native Casper token (no contract hash, handled automatically)
+- **WCSPR** — Wrapped CSPR (`hash-8df5d26790e18cf0404502c62ce5dc9025800ad6975c97466e20506c39c505b6`)
+- **sCSPR** — Staked CSPR (`hash-a4f6d5e6ce046b7e8e32356b1395b69573ba2481fc86b85f9183f149366b60f1`)
+
+Use `get_tokens` for the full list. Symbols are case-insensitive.
+
+## Input Validation
+
+All tools validate inputs before making RPC calls:
+- **Amount fields** — must be a positive number
+- **Public keys** — must be 66-char hex with `01` (ed25519) or `02` (secp256k1) prefix
+- **Slippage** — must be 0–10000 basis points
+- **Same-token swaps** — rejected (token_in ≠ token_out)
+
+Invalid inputs return a structured error with a clear message, without consuming an RPC call.
 
 ## Tool Reference
 
@@ -254,17 +273,19 @@ If you intentionally enable `CSPR_TRADE_ENABLE_FILE_DEPLOY_INPUT=true` on a loca
 4. Sign and submit the final add-liquidity deploy
 
 ### Portfolio inspection
-1. `get_token_balance({ account_public_key: "01..." })`
-2. `get_liquidity_positions({ account_public_key: "01...", currency: "USD" })`
-3. `get_portfolio_value({ account_public_key: "01...", currency: "USD" })`
-4. `get_position_status({ account_public_key: "01..." })`
-5. `get_swap_history({ public_key: "01...", page: 1, page_size: 20 })`
+1. `get_native_cspr_balance({ account_public_key: "01..." })`
+2. `get_token_balance({ account_public_key: "01..." })`
+3. `get_liquidity_positions({ account_public_key: "01...", currency: "USD" })`
+4. `get_portfolio_value({ account_public_key: "01...", currency: "USD" })`
+5. `get_position_status({ account_public_key: "01..." })`
+6. `get_swap_history({ public_key: "01...", page: 1, page_size: 20 })`
 
 ## Safety notes
 
 - Always quote before building a swap.
 - Run trade analysis before large swaps.
-- `get_token_balance` is CEP-18 only; native CSPR is not included.
+- `get_token_balance` is CEP-18 only; use `get_native_cspr_balance` for CSPR balance.
+- `get_native_cspr_balance` queries the node RPC directly — use this to check CSPR balance before swaps.
 - `get_position_status` is not cost-basis PnL.
 - Use `public_key` for `get_swap_history` queries.
 - Never ask the user for a private key directly.

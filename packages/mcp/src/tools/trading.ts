@@ -10,8 +10,8 @@ export function registerTradingTools(server: McpServer, client: CsprTradeClient)
     'build_swap',
     'Build an unsigned swap transaction. Returns the deploy JSON for external signing, plus a human-readable summary.',
     {
-      token_in: z.string().describe('Input token: symbol (e.g., "CSPR"), name, or contract hash'),
-      token_out: z.string().describe('Output token: symbol (e.g., "USDT"), name, or contract hash'),
+      token_in: z.string().describe('Input token: symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2…05b6), "sCSPR" (hash-a4f6d5…60f1)), name, or contract hash. Use get_tokens for full list.'),
+      token_out: z.string().describe('Output token: symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2…05b6), "sCSPR" (hash-a4f6d5…60f1)), name, or contract hash. Use get_tokens for full list.'),
       amount: z.string().describe('Human-readable amount (e.g., "100")'),
       type: z.enum(['exact_in', 'exact_out']).describe('"exact_in" or "exact_out"'),
       slippage_bps: z.number().optional().describe('Slippage tolerance in basis points (default 300 = 3%)'),

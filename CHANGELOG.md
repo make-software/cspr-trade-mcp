@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-04-27
+
+### Added
+- **Token address annotations in tool descriptions** — `token_in`, `token_out`, `token_a`, `token_b` parameters across all trading, market data, liquidity, and analysis tools now embed mainnet contract hashes for CSPR (native), WCSPR (`hash-8df5d2…`), and sCSPR (`hash-a4f6d5…`). Agents can build common swap patterns without a `get_tokens` round-trip.
+- **Updated `llms.txt`** — reflects 24 tools, adds Token Identification section with mainnet hashes, adds Input Validation section documenting pre-call validation behavior, updated portfolio workflow to include `get_native_cspr_balance`.
+
 ## [0.5.0] - 2026-04-27
 
 ### Added
@@ -106,7 +112,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Claude Code SKILL.md for guided DEX interactions
 - `llms.txt` for LLM-readable documentation
 
-[Unreleased]: https://github.com/make-software/cspr-trade-mcp/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/make-software/cspr-trade-mcp/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/make-software/cspr-trade-mcp/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/make-software/cspr-trade-mcp/compare/v0.4.2...v0.5.0
 [0.3.2]: https://github.com/make-software/cspr-trade-mcp/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/make-software/cspr-trade-mcp/compare/v0.3.0...v0.3.1

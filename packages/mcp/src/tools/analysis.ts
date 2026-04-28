@@ -8,8 +8,8 @@ export function registerAnalysisTools(server: McpServer, client: CsprTradeClient
     'estimate_price_impact',
     'Estimate the price impact of a swap before executing. Returns severity classification and execution vs. spot price.',
     {
-      token_in: z.string().describe('Input token symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2…05b6), "sCSPR" (hash-a4f6d5…60f1)), name, or contract hash. Use get_tokens for full list.'),
-      token_out: z.string().describe('Output token symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2…05b6), "sCSPR" (hash-a4f6d5…60f1)), name, or contract hash. Use get_tokens for full list.'),
+      token_in: z.string().describe('Input token symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2...05b6), "sCSPR" (hash-a4f6d5...60f1)), name, or contract hash. Use get_tokens for full list.'),
+      token_out: z.string().describe('Output token symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2...05b6), "sCSPR" (hash-a4f6d5...60f1)), name, or contract hash. Use get_tokens for full list.'),
       amount: z.string().describe('Human-readable input amount (e.g., "1000")'),
     },
     async (args) => withActionableErrors(args, async (args) => {
@@ -37,8 +37,8 @@ export function registerAnalysisTools(server: McpServer, client: CsprTradeClient
     'estimate_slippage',
     'Estimate the expected slippage and minimum output for a swap. Helps set optimal slippage tolerance.',
     {
-      token_in: z.string().describe('Input token symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2…05b6), "sCSPR" (hash-a4f6d5…60f1)), name, or contract hash. Use get_tokens for full list.'),
-      token_out: z.string().describe('Output token symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2…05b6), "sCSPR" (hash-a4f6d5…60f1)), name, or contract hash. Use get_tokens for full list.'),
+      token_in: z.string().describe('Input token symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2...05b6), "sCSPR" (hash-a4f6d5...60f1)), name, or contract hash. Use get_tokens for full list.'),
+      token_out: z.string().describe('Output token symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2...05b6), "sCSPR" (hash-a4f6d5...60f1)), name, or contract hash. Use get_tokens for full list.'),
       amount: z.string().describe('Human-readable input amount (e.g., "1000")'),
       slippage_tolerance_bps: z.number().optional().describe('Your slippage tolerance in bps (default 300 = 3%)'),
     },
@@ -73,8 +73,8 @@ export function registerAnalysisTools(server: McpServer, client: CsprTradeClient
     'analyze_trade',
     'Comprehensive trade analysis: price impact + slippage + execution recommendation. Use before large swaps.',
     {
-      token_in: z.string().describe('Input token symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2…05b6), "sCSPR" (hash-a4f6d5…60f1)), name, or contract hash. Use get_tokens for full list.'),
-      token_out: z.string().describe('Output token symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2…05b6), "sCSPR" (hash-a4f6d5…60f1)), name, or contract hash. Use get_tokens for full list.'),
+      token_in: z.string().describe('Input token symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2...05b6), "sCSPR" (hash-a4f6d5...60f1)), name, or contract hash. Use get_tokens for full list.'),
+      token_out: z.string().describe('Output token symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2...05b6), "sCSPR" (hash-a4f6d5...60f1)), name, or contract hash. Use get_tokens for full list.'),
       amount: z.string().describe('Human-readable input amount'),
       slippage_tolerance_bps: z.number().optional().describe('Slippage tolerance in bps (default 300 = 3%)'),
     },
@@ -111,8 +111,8 @@ export function registerAnalysisTools(server: McpServer, client: CsprTradeClient
     'optimal_liquidity_amounts',
     'Given one token amount, calculate the optimal paired amount for adding liquidity to maintain the pool ratio.',
     {
-      token_a: z.string().describe('First token: symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2…05b6), "sCSPR" (hash-a4f6d5…60f1)), name, or contract hash. Use get_tokens for full list.'),
-      token_b: z.string().describe('Second token: symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2…05b6), "sCSPR" (hash-a4f6d5…60f1)), name, or contract hash. Use get_tokens for full list.'),
+      token_a: z.string().describe('First token: symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2...05b6), "sCSPR" (hash-a4f6d5...60f1)), name, or contract hash. Use get_tokens for full list.'),
+      token_b: z.string().describe('Second token: symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2...05b6), "sCSPR" (hash-a4f6d5...60f1)), name, or contract hash. Use get_tokens for full list.'),
       amount_a: z.string().describe('Human-readable amount of token A to deposit'),
     },
     async (args) => withActionableErrors(args, async (args) => {

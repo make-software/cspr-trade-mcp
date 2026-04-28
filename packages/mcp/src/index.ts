@@ -2,14 +2,13 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import type { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import type { Request, Response } from 'express';
-import { createServer, createSignerServer } from './server.js';
+import { createServer, createSignerServer, version } from './server.js';
 import { isDeployFileInputEnabled } from './tools/deploy-file.js';
 
 const signerMode = process.argv.includes('--signer');
 const network = (process.env.CSPR_TRADE_NETWORK as 'mainnet' | 'testnet') ?? 'mainnet';
 const apiUrl = process.env.CSPR_TRADE_API_URL;
 const transport = process.env.CSPR_TRADE_TRANSPORT ?? 'stdio';
-const version = '0.6.0';
 const fileDeployInputEnabled = isDeployFileInputEnabled();
 
 function getRateLimitConfig() {

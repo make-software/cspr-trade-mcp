@@ -54,8 +54,8 @@ export function registerMarketDataTools(server: McpServer, client: CsprTradeClie
     'get_quote',
     'Get a swap quote for trading between two tokens. Returns amounts, price impact, and routing path.',
     {
-      token_in: z.string().describe('Input token: symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2…05b6), "sCSPR" (hash-a4f6d5…60f1)), name, or contract hash. Use get_tokens for full list.'),
-      token_out: z.string().describe('Output token: symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2…05b6), "sCSPR" (hash-a4f6d5…60f1)), name, or contract hash. Use get_tokens for full list.'),
+      token_in: z.string().describe('Input token: symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2...05b6), "sCSPR" (hash-a4f6d5...60f1)), name, or contract hash. Use get_tokens for full list.'),
+      token_out: z.string().describe('Output token: symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2...05b6), "sCSPR" (hash-a4f6d5...60f1)), name, or contract hash. Use get_tokens for full list.'),
       amount: z.string().describe('Human-readable amount (e.g., "100" for 100 CSPR)'),
       type: z.enum(['exact_in', 'exact_out']).describe('"exact_in" = specify input amount, "exact_out" = specify desired output amount'),
     },
@@ -97,7 +97,7 @@ export function registerMarketDataTools(server: McpServer, client: CsprTradeClie
     'get_token_price_history',
     'Get OHLCV candlestick price history for a token by symbol, name, or hash. Resolves to the primary trading pair (highest liquidity) and returns price denominated in the paired token.',
     {
-      token: z.string().describe('Token symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2…05b6), "sCSPR" (hash-a4f6d5…60f1)), name, or contract package hash. Use get_tokens for full list.'),
+      token: z.string().describe('Token symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2...05b6), "sCSPR" (hash-a4f6d5...60f1)), name, or contract package hash. Use get_tokens for full list.'),
       interval: z.enum(['1h', '4h', '1d']).optional().describe('Candle interval (default "1h")'),
       limit: z.number().optional().describe('Number of candles to return (default 24, max 200)'),
     },

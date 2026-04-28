@@ -258,16 +258,16 @@ Signer env vars:
 2. `get_token_price_history({ token: "sCSPR", interval: "1d", limit: 7 })`
 
 ### Swap flow
-1. `get_quote({ token_in: "CSPR", token_out: "USDT", amount: "1000", type: "exact_in" })`
-2. `analyze_trade({ token_in: "CSPR", token_out: "USDT", amount: "1000" })`
-3. `build_swap({ token_in: "CSPR", token_out: "USDT", amount: "1000", type: "exact_in", sender_public_key: "01..." })`
+1. `get_quote({ token_in: "CSPR", token_out: "sCSPR", amount: "1000", type: "exact_in" })`
+2. `analyze_trade({ token_in: "CSPR", token_out: "sCSPR", amount: "1000" })`
+3. `build_swap({ token_in: "CSPR", token_out: "sCSPR", amount: "1000", type: "exact_in", sender_public_key: "01..." })`
 4. `sign_deploy(...)` if local signer is available, otherwise external signing
 5. `submit_transaction({ signed_deploy_json: "<signed JSON>" })`
 
 If you intentionally enable `CSPR_TRADE_ENABLE_FILE_DEPLOY_INPUT=true` on a local install, the build/sign/submit flow may use temp-file paths on that same machine instead.
 
 ### Liquidity flow
-1. `optimal_liquidity_amounts({ token_a: "CSPR", token_b: "USDT", amount_a: "5000" })`
+1. `optimal_liquidity_amounts({ token_a: "CSPR", token_b: "sCSPR", amount_a: "5000" })`
 2. `build_add_liquidity(...)`
 3. Sign approvals if returned
 4. Sign and submit the final add-liquidity deploy

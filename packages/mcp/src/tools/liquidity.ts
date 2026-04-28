@@ -10,8 +10,8 @@ export function registerLiquidityTools(server: McpServer, client: CsprTradeClien
     'build_add_liquidity',
     'Build an unsigned add-liquidity transaction for a token pair',
     {
-      token_a: z.string().describe('First token: symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2…05b6), "sCSPR" (hash-a4f6d5…60f1)), name, or hash. Use get_tokens for full list.'),
-      token_b: z.string().describe('Second token: symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2…05b6), "sCSPR" (hash-a4f6d5…60f1)), name, or hash. Use get_tokens for full list.'),
+      token_a: z.string().describe('First token: symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2...05b6), "sCSPR" (hash-a4f6d5...60f1)), name, or hash. Use get_tokens for full list.'),
+      token_b: z.string().describe('Second token: symbol (e.g., "CSPR" (native), "WCSPR" (hash-8df5d2...05b6), "sCSPR" (hash-a4f6d5...60f1)), name, or hash. Use get_tokens for full list.'),
       amount_a: z.string().describe('Human-readable amount of first token'),
       amount_b: z.string().describe('Human-readable amount of second token'),
       slippage_bps: z.number().optional().describe('Slippage in basis points (default 300)'),

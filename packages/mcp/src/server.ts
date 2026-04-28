@@ -1,3 +1,4 @@
+import { createRequire } from 'module';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { CsprTradeClient, type CsprTradeClientConfig } from '@make-software/cspr-trade-mcp-sdk';
 
@@ -8,12 +9,15 @@ import { registerAccountTools } from './tools/account.js';
 import { registerAnalysisTools } from './tools/analysis.js';
 import { registerSignerTools } from './tools/signer.js';
 
+const _require = createRequire(import.meta.url);
+export const { version } = _require('../package.json') as { version: string };
+
 export function createServer(config: CsprTradeClientConfig): McpServer {
   const client = new CsprTradeClient(config);
 
   const server = new McpServer({
     name: 'cspr-trade',
-    version: '0.4.2',
+    version,
   });
 
   registerMarketDataTools(server, client);
@@ -28,7 +32,7 @@ export function createServer(config: CsprTradeClientConfig): McpServer {
 export function createSignerServer(): McpServer {
   const server = new McpServer({
     name: 'cspr-trade-signer',
-    version: '0.4.2',
+    version,
   });
 
   registerSignerTools(server);

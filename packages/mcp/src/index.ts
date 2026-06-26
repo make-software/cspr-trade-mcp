@@ -4,6 +4,7 @@ import type { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/se
 import type { Request, Response } from 'express';
 import { createServer, createSignerServer, version } from './server.js';
 import { isDeployFileInputEnabled } from './tools/deploy-file.js';
+import { reapIdleSessions } from './session-reaper.js';
 
 const signerMode = process.argv.includes('--signer');
 const network = (process.env.CSPR_TRADE_NETWORK as 'mainnet' | 'testnet') ?? 'mainnet';
@@ -51,7 +52,23 @@ if (transport === 'http') {
 
   // Track transports by session ID for cleanup
   const transports = new Map<string, StreamableHTTPServerTransport>();
+  // Track last-activity per session so we can reap idle/abandoned sessions.
+  // MCP clients that POST without a clean DELETE/close otherwise leak a full
+  // server instance per session forever (observed: 1,198 sessions / 2.5GB).
+  const sessionLastSeen = new Map<string, number>();
   const startedAt = new Date().toISOString();
+
+  const sessionIdleMs = Number(process.env.CSPR_TRADE_SESSION_IDLE_MS ?? '1800000'); // 30 min
+  const sessionSweepMs = Number(process.env.CSPR_TRADE_SESSION_SWEEP_MS ?? '300000'); // 5 min
+
+  const touchSession = (sid: string | undefined) => {
+    if (sid) sessionLastSeen.set(sid, Date.now());
+  };
+
+  const reaper = setInterval(() => {
+    reapIdleSessions(transports, sessionLastSeen, sessionIdleMs);
+  }, sessionSweepMs);
+  reaper.unref();
 
   app.get('/health', async (req: Request, res: Response) => {
     const deep = req.query.deep === '1' || req.query.deep === 'true';
@@ -63,6 +80,7 @@ if (transport === 'http') {
       uptime: process.uptime(),
       startedAt,
       activeSessions: transports.size,
+      sessionIdleMs,
       memoryMB: Math.round(process.memoryUsage.rss() / 1048576),
       fileDeployInputEnabled,
     };
@@ -122,6 +140,7 @@ if (transport === 'http') {
     const existingSessionId = req.headers['mcp-session-id'] as string | undefined;
     const existing = existingSessionId ? transports.get(existingSessionId) : undefined;
     if (existing) {
+      touchSession(existingSessionId);
       await existing.handleRequest(req, res, req.body);
       return;
     }
@@ -132,7 +151,10 @@ if (transport === 'http') {
 
     sessionTransport.onclose = () => {
       const sid = sessionTransport.sessionId;
-      if (sid) transports.delete(sid);
+      if (sid) {
+        transports.delete(sid);
+        sessionLastSeen.delete(sid);
+      }
     };
 
     const server = createServer({ network, apiUrl });
@@ -140,7 +162,10 @@ if (transport === 'http') {
     await sessionTransport.handleRequest(req, res, req.body);
 
     const sid = sessionTransport.sessionId;
-    if (sid) transports.set(sid, sessionTransport);
+    if (sid) {
+      transports.set(sid, sessionTransport);
+      touchSession(sid);
+    }
   });
 
   app.get('/mcp', async (req: Request, res: Response) => {
@@ -151,6 +176,7 @@ if (transport === 'http') {
       res.end(JSON.stringify({ error: 'No valid session. Send an initialize request first.' }));
       return;
     }
+    touchSession(sessionId);
     await sessionTransport.handleRequest(req, res);
   });
 
@@ -163,6 +189,23 @@ if (transport === 'http') {
       return;
     }
     await sessionTransport.handleRequest(req, res);
+  });
+
+  app.get('/cdp-resource', async (req: Request, res: Response) => {
+    const resourceData = {
+      bazaarResourceServerExtension: {
+        resourceName: "CSPR.trade MCP Listing",
+        description: "Curated listing for CSPR.trade MCP on Agentic.Market",
+      },
+      declareDiscoveryExtension: [
+        {
+          targetRoute: "/mcp",
+        }
+      ],
+    };
+
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(resourceData));
   });
 
   app.use((_req: Request, res: Response) => {

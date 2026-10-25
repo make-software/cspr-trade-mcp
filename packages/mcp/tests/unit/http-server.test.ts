@@ -35,6 +35,7 @@ const createMcpExpressAppMock = vi.fn(() => ({
 vi.mock('../../src/server.js', () => ({
   createServer: createServerMock,
   createSignerServer: createSignerServerMock,
+  parseToolProfile: (v: string | undefined) => (v === 'read-only' ? 'read-only' : 'full'),
   version: '0.7.0',
 }));
 
@@ -86,6 +87,7 @@ describe('HTTP server bootstrap', () => {
     delete process.env.CSPR_TRADE_PAYMENT_ADDRESS;
     delete process.env.CSPR_TRADE_X402_PRICE;
     delete process.env.CSPR_TRADE_CDP_FACILITATOR_URL;
+    delete process.env.CSPR_TRADE_TOOL_PROFILE;
   });
 
   it('registers a /health endpoint and configures trust proxy + scoped rate limiting defaults for HTTP transport', async () => {
@@ -226,5 +228,41 @@ describe('HTTP server bootstrap', () => {
 
     gatedMiddleware({ method: 'POST', path: '/mcp', body: { method: 'tools/call', params: { name: 'get_quote' } } }, {}, next);
     expect(paymentMiddlewareHandlerMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('mounts /mcp/read-only with the read-only profile and keeps /mcp on the full profile', async () => {
+    process.env.CSPR_TRADE_TRANSPORT = 'http';
+
+    await import('../../src/index.js');
+
+    for (const route of ['/mcp', '/mcp/read-only']) {
+      expect(appPost).toHaveBeenCalledWith(route, expect.any(Function));
+      expect(appGet).toHaveBeenCalledWith(route, expect.any(Function));
+      expect(appDelete).toHaveBeenCalledWith(route, expect.any(Function));
+    }
+
+    const postFor = (route: string) => appPost.mock.calls.find(([r]) => r === route)?.[1];
+    const res = () => ({ writeHead: vi.fn(), end: vi.fn() });
+
+    await postFor('/mcp/read-only')({ headers: {}, body: {} }, res());
+    expect(createServerMock).toHaveBeenLastCalledWith(expect.anything(), { profile: 'read-only' });
+
+    await postFor('/mcp')({ headers: {}, body: {} }, res());
+    expect(createServerMock).toHaveBeenLastCalledWith(expect.anything(), { profile: 'full' });
+  });
+
+  it('rejects a full-profile session id on the read-only route', async () => {
+    process.env.CSPR_TRADE_TRANSPORT = 'http';
+
+    await import('../../src/index.js');
+
+    const postFor = (route: string) => appPost.mock.calls.find(([r]) => r === route)?.[1];
+    await postFor('/mcp')({ headers: {}, body: {} }, { writeHead: vi.fn(), end: vi.fn() });
+    createServerMock.mockClear();
+
+    const res = { writeHead: vi.fn(), end: vi.fn() };
+    await postFor('/mcp/read-only')({ headers: { 'mcp-session-id': 'test-session' }, body: {} }, res);
+    expect(res.writeHead).toHaveBeenCalledWith(400, { 'Content-Type': 'application/json' });
+    expect(createServerMock).not.toHaveBeenCalled();
   });
 });

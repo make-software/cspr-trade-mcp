@@ -2,7 +2,7 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import type { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import type { Request, Response } from 'express';
-import { createServer, createSignerServer, version } from './server.js';
+import { createServer, createSignerServer, parseToolProfile, type ToolProfile, version } from './server.js';
 import { isDeployFileInputEnabled } from './tools/deploy-file.js';
 import { reapIdleSessions } from './session-reaper.js';
 
@@ -11,6 +11,8 @@ const network = (process.env.CSPR_TRADE_NETWORK as 'mainnet' | 'testnet') ?? 'ma
 const apiUrl = process.env.CSPR_TRADE_API_URL;
 const transport = process.env.CSPR_TRADE_TRANSPORT ?? 'stdio';
 const fileDeployInputEnabled = isDeployFileInputEnabled();
+// Profile for stdio and for the default HTTP route /mcp. /mcp/read-only is always read-only.
+const toolProfile = parseToolProfile(process.env.CSPR_TRADE_TOOL_PROFILE);
 
 function getRateLimitConfig() {
   return {
@@ -136,60 +138,83 @@ if (transport === 'http') {
     res.end(JSON.stringify(base));
   });
 
-  app.post('/mcp', async (req: Request & { body?: unknown }, res: Response) => {
-    const existingSessionId = req.headers['mcp-session-id'] as string | undefined;
-    const existing = existingSessionId ? transports.get(existingSessionId) : undefined;
-    if (existing) {
-      touchSession(existingSessionId);
-      await existing.handleRequest(req, res, req.body);
-      return;
-    }
+  // Each session is bound to the profile it was created on. A session id from
+  // one route is rejected on the other, so /mcp/read-only can never reach a
+  // full-profile server.
+  const sessionProfile = new Map<string, ToolProfile>();
 
-    const sessionTransport = new StreamableTransport({
-      sessionIdGenerator: () => randomUUID(),
-    });
+  const sessionFor = (req: Request, profile: ToolProfile) => {
+    const sid = req.headers['mcp-session-id'] as string | undefined;
+    const t = sid ? transports.get(sid) : undefined;
+    if (!t || !sid) return { sid, transport: undefined, mismatch: false };
+    if ((sessionProfile.get(sid) ?? 'full') !== profile) return { sid, transport: undefined, mismatch: true };
+    return { sid, transport: t, mismatch: false };
+  };
 
-    sessionTransport.onclose = () => {
+  const mountMcpRoute = (path: string, profile: ToolProfile) => {
+    app.post(path, async (req: Request & { body?: unknown }, res: Response) => {
+      const { sid: existingSessionId, transport: existing, mismatch } = sessionFor(req, profile);
+      if (mismatch) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Session belongs to a different endpoint. Send an initialize request first.' }));
+        return;
+      }
+      if (existing) {
+        touchSession(existingSessionId);
+        await existing.handleRequest(req, res, req.body);
+        return;
+      }
+
+      const sessionTransport = new StreamableTransport({
+        sessionIdGenerator: () => randomUUID(),
+      });
+
+      sessionTransport.onclose = () => {
+        const sid = sessionTransport.sessionId;
+        if (sid) {
+          transports.delete(sid);
+          sessionLastSeen.delete(sid);
+          sessionProfile.delete(sid);
+        }
+      };
+
+      const server = createServer({ network, apiUrl }, { profile });
+      await server.connect(sessionTransport);
+      await sessionTransport.handleRequest(req, res, req.body);
+
       const sid = sessionTransport.sessionId;
       if (sid) {
-        transports.delete(sid);
-        sessionLastSeen.delete(sid);
+        transports.set(sid, sessionTransport);
+        sessionProfile.set(sid, profile);
+        touchSession(sid);
       }
-    };
+    });
 
-    const server = createServer({ network, apiUrl });
-    await server.connect(sessionTransport);
-    await sessionTransport.handleRequest(req, res, req.body);
+    app.get(path, async (req: Request, res: Response) => {
+      const { sid: sessionId, transport: sessionTransport } = sessionFor(req, profile);
+      if (!sessionTransport) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'No valid session. Send an initialize request first.' }));
+        return;
+      }
+      touchSession(sessionId);
+      await sessionTransport.handleRequest(req, res);
+    });
 
-    const sid = sessionTransport.sessionId;
-    if (sid) {
-      transports.set(sid, sessionTransport);
-      touchSession(sid);
-    }
-  });
+    app.delete(path, async (req: Request, res: Response) => {
+      const { transport: sessionTransport } = sessionFor(req, profile);
+      if (!sessionTransport) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'No valid session.' }));
+        return;
+      }
+      await sessionTransport.handleRequest(req, res);
+    });
+  };
 
-  app.get('/mcp', async (req: Request, res: Response) => {
-    const sessionId = req.headers['mcp-session-id'] as string | undefined;
-    const sessionTransport = sessionId ? transports.get(sessionId) : undefined;
-    if (!sessionTransport) {
-      res.writeHead(400, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'No valid session. Send an initialize request first.' }));
-      return;
-    }
-    touchSession(sessionId);
-    await sessionTransport.handleRequest(req, res);
-  });
-
-  app.delete('/mcp', async (req: Request, res: Response) => {
-    const sessionId = req.headers['mcp-session-id'] as string | undefined;
-    const sessionTransport = sessionId ? transports.get(sessionId) : undefined;
-    if (!sessionTransport) {
-      res.writeHead(400, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'No valid session.' }));
-      return;
-    }
-    await sessionTransport.handleRequest(req, res);
-  });
+  // Register the more specific path first. Both sit under the /mcp rate limiter.
+  mountMcpRoute('/mcp/read-only', 'read-only');
+  mountMcpRoute('/mcp', toolProfile);
 
   app.get('/cdp-resource', async (req: Request, res: Response) => {
     const resourceData = {
@@ -221,7 +246,7 @@ if (transport === 'http') {
   const stdioTransport = new StdioServerTransport();
   await server.connect(stdioTransport);
 } else {
-  const server = createServer({ network, apiUrl });
+  const server = createServer({ network, apiUrl }, { profile: toolProfile });
   const stdioTransport = new StdioServerTransport();
   await server.connect(stdioTransport);
 }

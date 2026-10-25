@@ -40,6 +40,10 @@ That's it. Your agent now has access to **24 public tools** for market data, swa
 | **Trade Analysis** | `estimate_price_impact`, `estimate_slippage`, `analyze_trade`, `optimal_liquidity_amounts` | No |
 | **Account** | `get_token_balance`, `get_liquidity_positions`, `get_impermanent_loss`, `get_swap_history`, `get_portfolio_value`, `get_position_status` | No |
 
+### Read-only endpoint
+
+`https://mcp.cspr.trade/mcp/read-only` serves the same server without the transaction tools (`build_*` and `submit_transaction`): market data, account lookups and trade analysis only, every tool annotated `readOnlyHint: true`. Use it where a client or directory must not build or broadcast transactions. Sessions are bound to the endpoint they were created on.
+
 ### Optional local signer: +1 tool
 
 Run a second local MCP instance in `--signer` mode to add:

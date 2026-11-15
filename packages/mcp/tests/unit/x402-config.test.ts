@@ -19,6 +19,7 @@ describe('x402 config', () => {
       enabled: false,
       payTo: null,
       facilitatorUrl: CDP_FACILITATOR_URL,
+      cdpCredentials: null,
     });
   });
 
@@ -54,6 +55,26 @@ describe('x402 config', () => {
       enabled: true,
       payTo: '0x1111111111111111111111111111111111111111',
       facilitatorUrl: 'https://facilitator.example/x402',
+      cdpCredentials: null,
     });
+  });
+
+  it('refuses the CDP facilitator without both CDP API key parts', () => {
+    const base = { CSPR_TRADE_X402_ENABLED: 'true', CSPR_TRADE_X402_PAYTO: '0x1111111111111111111111111111111111111111' };
+    for (const extra of [{}, { CDP_API_KEY_ID: 'id' }, { CDP_API_KEY_SECRET: 'secret' }, { CDP_API_KEY_ID: ' ', CDP_API_KEY_SECRET: 'secret' }]) {
+      expect(() => resolveX402Config({ ...base, ...extra })).toThrow(/CDP_API_KEY_ID and CDP_API_KEY_SECRET/);
+    }
+  });
+
+  it('carries CDP credentials when the CDP facilitator is used', () => {
+    const config = resolveX402Config({
+      CSPR_TRADE_X402_ENABLED: 'true',
+      CSPR_TRADE_X402_PAYTO: '0x1111111111111111111111111111111111111111',
+      CDP_API_KEY_ID: 'key-id',
+      CDP_API_KEY_SECRET: 'key-secret',
+    });
+
+    expect(config.facilitatorUrl).toBe(CDP_FACILITATOR_URL);
+    expect(config.cdpCredentials).toEqual({ apiKeyId: 'key-id', apiKeySecret: 'key-secret' });
   });
 });

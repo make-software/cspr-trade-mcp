@@ -12,14 +12,15 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@coinbase/x402": "^2.1.0",
     "@make-software/cspr-trade-mcp-sdk": "*",
     "@modelcontextprotocol/sdk": "^1.0.0",
     "@scure/bip32": "^1.7.0",
     "@scure/bip39": "^1.6.0",
-    "@x402/core": "^2.16.0",
-    "@x402/evm": "^2.16.0",
-    "@x402/express": "^2.16.0",
-    "@x402/extensions": "^2.16.0",
+    "@x402/core": "^2.31.0",
+    "@x402/evm": "^2.31.0",
+    "@x402/express": "^2.31.0",
+    "@x402/extensions": "^2.31.0",
     "casper-js-sdk": "^5.0.11",
     "express-rate-limit": "^8.2.1"
   },

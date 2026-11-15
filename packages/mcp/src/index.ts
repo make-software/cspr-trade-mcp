@@ -7,6 +7,7 @@ import { isDeployFileInputEnabled } from './tools/deploy-file.js';
 import { reapIdleSessions } from './session-reaper.js';
 import { X402_NETWORK, getCdpResourceManifest, getX402RoutesConfig, shouldRequireX402Payment } from './x402-bazaar-manifest.js';
 import { resolveX402Config } from './x402-config.js';
+import { installX402Gate } from './x402-gate.js';
 
 const signerMode = process.argv.includes('--signer');
 const network = (process.env.CSPR_TRADE_NETWORK as 'mainnet' | 'testnet') ?? 'mainnet';
@@ -68,20 +69,20 @@ if (transport === 'http') {
       publicUrl,
       payTo,
     });
-    const cdpFacilitator = new HTTPFacilitatorClient({ url: x402Config.facilitatorUrl });
+    const facilitatorConfig = x402Config.cdpCredentials
+      ? (await import('@coinbase/x402')).createFacilitatorConfig(
+        x402Config.cdpCredentials.apiKeyId,
+        x402Config.cdpCredentials.apiKeySecret,
+      )
+      : { url: x402Config.facilitatorUrl };
+    const facilitator = new HTTPFacilitatorClient(facilitatorConfig);
     const exactEvmScheme = new ExactEvmScheme();
     const x402Middleware = paymentMiddlewareFromConfig(
       x402Routes,
-      cdpFacilitator,
+      facilitator,
       [{ network: X402_NETWORK, server: exactEvmScheme }],
     );
-    app.use('/mcp', (req: Request & { body?: unknown }, res: Response, next: () => void) => {
-      if (!shouldRequireX402Payment(req.body)) {
-        next();
-        return;
-      }
-      void x402Middleware(req, res, next);
-    });
+    installX402Gate(app, x402Middleware, shouldRequireX402Payment);
   }
 
   // Track transports by session ID for cleanup

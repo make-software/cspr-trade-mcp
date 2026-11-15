@@ -214,15 +214,17 @@ describe('HTTP server bootstrap', () => {
       adapter: { getBody: () => ({ method: 'tools/call', params: { name: 'get_tokens' } }) },
     })).toBe('$0');
     expect(routes['POST /mcp'].extensions.bazaar).toBeTruthy();
-    expect(appUse).toHaveBeenCalledWith('/mcp', expect.any(Function));
-    const gatedMiddleware = appUse.mock.calls.findLast(([route, handler]) => route === '/mcp' && typeof handler === 'function')?.[1];
+    // The gate is mounted at the app root (see x402-gate.ts): under app.use('/mcp')
+    // the x402 middleware would see req.path '/' and charge nothing.
+    expect(appUse).not.toHaveBeenCalledWith('/mcp', expect.any(Function));
+    const gatedMiddleware = appUse.mock.calls.findLast(([handler]) => typeof handler === 'function' && handler.length === 3)?.[0];
     expect(gatedMiddleware).toBeTypeOf('function');
     const next = vi.fn();
-    gatedMiddleware({ body: { method: 'tools/call', params: { name: 'get_tokens' } } }, {}, next);
+    gatedMiddleware({ method: 'POST', path: '/mcp', body: { method: 'tools/call', params: { name: 'get_tokens' } } }, {}, next);
     expect(next).toHaveBeenCalledTimes(1);
     expect(paymentMiddlewareHandlerMock).not.toHaveBeenCalled();
 
-    gatedMiddleware({ body: { method: 'tools/call', params: { name: 'get_quote' } } }, {}, next);
+    gatedMiddleware({ method: 'POST', path: '/mcp', body: { method: 'tools/call', params: { name: 'get_quote' } } }, {}, next);
     expect(paymentMiddlewareHandlerMock).toHaveBeenCalledTimes(1);
   });
 });

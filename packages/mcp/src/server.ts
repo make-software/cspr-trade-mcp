@@ -8,6 +8,7 @@ import { registerLiquidityTools } from './tools/liquidity.js';
 import { registerAccountTools } from './tools/account.js';
 import { registerAnalysisTools } from './tools/analysis.js';
 import { registerSignerTools } from './tools/signer.js';
+import { withToolMetadata } from './tools/metadata.js';
 
 const _require = createRequire(import.meta.url);
 export const { version } = _require('../package.json') as { version: string };
@@ -15,10 +16,10 @@ export const { version } = _require('../package.json') as { version: string };
 export function createServer(config: CsprTradeClientConfig): McpServer {
   const client = new CsprTradeClient(config);
 
-  const server = new McpServer({
+  const server = withToolMetadata(new McpServer({
     name: 'cspr-trade',
     version,
-  });
+  }));
 
   registerMarketDataTools(server, client);
   registerTradingTools(server, client);
@@ -30,10 +31,10 @@ export function createServer(config: CsprTradeClientConfig): McpServer {
 }
 
 export function createSignerServer(): McpServer {
-  const server = new McpServer({
+  const server = withToolMetadata(new McpServer({
     name: 'cspr-trade-signer',
     version,
-  });
+  }));
 
   registerSignerTools(server);
 

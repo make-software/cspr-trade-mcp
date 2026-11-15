@@ -387,15 +387,16 @@ export function getX402RoutesConfig(options: {
   payTo: string;
 }): RoutesConfig {
   const publicUrl = options.publicUrl.replace(/\/$/, '');
+  const accepts = {
+    scheme: 'exact',
+    network: X402_NETWORK,
+    payTo: options.payTo,
+    price: priceForHTTPRequestContext,
+  } as const;
 
   return {
     'POST /mcp': {
-      accepts: {
-        scheme: 'exact',
-        network: X402_NETWORK,
-        payTo: options.payTo,
-        price: priceForHTTPRequestContext,
-      },
+      accepts,
       resource: `${publicUrl}/mcp`,
       description: serviceDescription,
       mimeType: 'application/json',
@@ -413,6 +414,17 @@ export function getX402RoutesConfig(options: {
         example: { jsonrpc: '2.0', method: 'tools/list', id: 1 },
         output: jsonOutput({ tools: toolDiscoveryDefinitions.map(({ toolName }) => ({ name: toolName })) }),
       }),
+    },
+    // Same premium tools, same price. Without this entry @x402/express matches no
+    // route here and the read-only endpoint would serve paid tools for free.
+    // No Bazaar extension: discovery lists the service once, under /mcp.
+    'POST /mcp/read-only': {
+      accepts,
+      resource: `${publicUrl}/mcp/read-only`,
+      description: `${serviceDescription} Read-only endpoint: no transaction tools.`,
+      mimeType: 'application/json',
+      serviceName,
+      tags,
     },
   };
 }

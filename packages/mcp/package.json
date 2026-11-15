@@ -12,12 +12,16 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@make-software/cspr-trade-mcp-sdk": "*",
     "@modelcontextprotocol/sdk": "^1.0.0",
     "@scure/bip32": "^1.7.0",
     "@scure/bip39": "^1.6.0",
+    "@x402/core": "^2.16.0",
+    "@x402/evm": "^2.16.0",
+    "@x402/express": "^2.16.0",
+    "@x402/extensions": "^2.16.0",
     "casper-js-sdk": "^5.0.11",
-    "express-rate-limit": "^8.2.1",
-    "@make-software/cspr-trade-mcp-sdk": "*"
+    "express-rate-limit": "^8.2.1"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",

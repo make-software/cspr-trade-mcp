@@ -5,12 +5,16 @@ import type { Request, Response } from 'express';
 import { createServer, createSignerServer, version } from './server.js';
 import { isDeployFileInputEnabled } from './tools/deploy-file.js';
 import { reapIdleSessions } from './session-reaper.js';
+import { X402_NETWORK, getCdpResourceManifest, getX402RoutesConfig, shouldRequireX402Payment } from './x402-bazaar-manifest.js';
+import { resolveX402Config } from './x402-config.js';
 
 const signerMode = process.argv.includes('--signer');
 const network = (process.env.CSPR_TRADE_NETWORK as 'mainnet' | 'testnet') ?? 'mainnet';
 const apiUrl = process.env.CSPR_TRADE_API_URL;
 const transport = process.env.CSPR_TRADE_TRANSPORT ?? 'stdio';
 const fileDeployInputEnabled = isDeployFileInputEnabled();
+const x402Config = resolveX402Config(process.env);
+const publicUrl = process.env.CSPR_TRADE_PUBLIC_URL ?? 'https://mcp.cspr.trade';
 
 function getRateLimitConfig() {
   return {
@@ -49,6 +53,36 @@ if (transport === 'http') {
       retryable: true,
     },
   }));
+
+  if (x402Config.enabled) {
+    const [{ paymentMiddlewareFromConfig }, { HTTPFacilitatorClient }, { ExactEvmScheme }] = await Promise.all([
+      import('@x402/express'),
+      import('@x402/core/server'),
+      import('@x402/evm/exact/server'),
+    ]);
+    const payTo = x402Config.payTo;
+    if (!payTo) {
+      throw new Error('CSPR_TRADE_X402_PAYTO is required when CSPR_TRADE_X402_ENABLED=true');
+    }
+    const x402Routes = getX402RoutesConfig({
+      publicUrl,
+      payTo,
+    });
+    const cdpFacilitator = new HTTPFacilitatorClient({ url: x402Config.facilitatorUrl });
+    const exactEvmScheme = new ExactEvmScheme();
+    const x402Middleware = paymentMiddlewareFromConfig(
+      x402Routes,
+      cdpFacilitator,
+      [{ network: X402_NETWORK, server: exactEvmScheme }],
+    );
+    app.use('/mcp', (req: Request & { body?: unknown }, res: Response, next: () => void) => {
+      if (!shouldRequireX402Payment(req.body)) {
+        next();
+        return;
+      }
+      void x402Middleware(req, res, next);
+    });
+  }
 
   // Track transports by session ID for cleanup
   const transports = new Map<string, StreamableHTTPServerTransport>();
@@ -191,21 +225,9 @@ if (transport === 'http') {
     await sessionTransport.handleRequest(req, res);
   });
 
-  app.get('/cdp-resource', async (req: Request, res: Response) => {
-    const resourceData = {
-      bazaarResourceServerExtension: {
-        resourceName: "CSPR.trade MCP Listing",
-        description: "Curated listing for CSPR.trade MCP on Agentic.Market",
-      },
-      declareDiscoveryExtension: [
-        {
-          targetRoute: "/mcp",
-        }
-      ],
-    };
-
+  app.get('/cdp-resource', async (_req: Request, res: Response) => {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(resourceData));
+    res.end(JSON.stringify(getCdpResourceManifest(publicUrl)));
   });
 
   app.use((_req: Request, res: Response) => {

@@ -10,7 +10,7 @@ Run your own CSPR.trade MCP server using the npm packages. This is for developer
 
 | Package | Description |
 |---------|-------------|
-| [`@make-software/cspr-trade-mcp`](https://www.npmjs.com/package/@make-software/cspr-trade-mcp) | MCP server — exposes 24 public tools over stdio or HTTP |
+| [`@make-software/cspr-trade-mcp`](https://www.npmjs.com/package/@make-software/cspr-trade-mcp) | MCP server — exposes 23 public tools over stdio or HTTP, plus optional local signer mode |
 | [`@make-software/cspr-trade-mcp-sdk`](https://www.npmjs.com/package/@make-software/cspr-trade-mcp-sdk) | TypeScript SDK — market data, price history, quotes, analysis, and transaction building |
 
 ## Quick Start (stdio)
@@ -107,8 +107,21 @@ Agent flow: `build_swap` (remote) → `sign_deploy` (local) → `submit_transact
 
 ### Tool counts by setup
 
-- **Main server only:** 24 public tools
-- **Main server + signer:** 23 total tools
+- **Main server only:** 23 public tools
+- **Main server + signer:** 24 total tools
+
+### Agentic.Market / x402 discovery
+
+HTTP deployments expose `GET /cdp-resource` for Bazaar discovery metadata. Payment gating is disabled unless `CSPR_TRADE_X402_ENABLED=true`.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CSPR_TRADE_X402_ENABLED` | `false` | Enables x402 payment middleware for premium `/mcp` tool calls |
+| `CSPR_TRADE_X402_PAYTO` | none | Base/EVM address receiving settlements; required when enabled |
+| `CSPR_TRADE_CDP_FACILITATOR_URL` | `https://api.cdp.coinbase.com/platform/v2/x402` | CDP Facilitator endpoint |
+| `CSPR_TRADE_PUBLIC_URL` | `https://mcp.cspr.trade` | Public base URL used in payment resource metadata |
+
+Premium analysis/history tools cost `$0.001`; discovery, balances, transaction builders, and `submit_transaction` bypass payment.
 
 ### Key Sources
 

@@ -1,7 +1,7 @@
 import type { Express, NextFunction, Request, Response } from 'express';
 
 /** MCP endpoints whose premium tool calls are paid. */
-export const X402_PAID_PATHS: readonly string[] = ['/mcp'];
+export const X402_PAID_PATHS: readonly string[] = ['/mcp', '/mcp/read-only'];
 
 type Middleware = (req: Request, res: Response, next: NextFunction) => unknown;
 

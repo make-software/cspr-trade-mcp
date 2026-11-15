@@ -34,6 +34,7 @@ async function startApp(paidPaths?: readonly string[]) {
   installX402Gate(app, paymentMiddlewareFromHTTPServer(httpServer), shouldRequireX402Payment, paidPaths);
   // Stand-in for the MCP handler: reaching it means the call was not charged.
   app.post('/mcp', (_req, res) => { res.json({ served: true }); });
+  app.post('/mcp/read-only', (_req, res) => { res.json({ served: true }); });
   await new Promise<void>((resolve) => { server = app.listen(0, '127.0.0.1', () => resolve()); });
   return `http://127.0.0.1:${(server!.address() as AddressInfo).port}`;
 }
@@ -55,8 +56,19 @@ describe('x402 gate with the real @x402/express middleware', () => {
 
   it('lets free calls through unpaid', async () => {
     const base = await startApp();
-    const res = await call(base, '/mcp', 'get_tokens');
-    expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ served: true });
+    for (const path of ['/mcp', '/mcp/read-only']) {
+      const res = await call(base, path, 'get_tokens');
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ served: true });
+    }
+  });
+
+  it('charges premium calls on /mcp/read-only the same as on /mcp', async () => {
+    const base = await startApp();
+    const res = await call(base, '/mcp/read-only', 'get_quote');
+    expect(res.status).toBe(402);
+    const challenge = JSON.parse(Buffer.from(res.headers.get('payment-required')!, 'base64').toString());
+    expect(challenge.resource.url).toBe('https://mcp.cspr.trade/mcp/read-only');
+    expect(challenge.accepts[0]).toMatchObject({ scheme: 'exact', network: X402_NETWORK, amount: '1000' });
   });
 });

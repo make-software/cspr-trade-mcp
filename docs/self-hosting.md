@@ -43,6 +43,8 @@ For remote agents or shared deployments, run as an HTTP server:
 CSPR_TRADE_NETWORK=mainnet CSPR_TRADE_TRANSPORT=http CSPR_TRADE_PORT=3001   npx @make-software/cspr-trade-mcp
 ```
 
+The HTTP server always mounts `/mcp/read-only`, which drops the transaction tools (`build_*`, `submit_transaction`). Set `CSPR_TRADE_TOOL_PROFILE=read-only` to apply the same profile to `/mcp` and to stdio as well; the default is `full`, and an unknown value stops the server at startup.
+
 Point any MCP client at `http://your-host:3001/mcp`.
 
 Health check: `http://your-host:3001/health`
@@ -116,7 +118,7 @@ HTTP deployments expose `GET /cdp-resource` for Bazaar discovery metadata. Payme
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `CSPR_TRADE_X402_ENABLED` | `false` | Enables x402 payment middleware for premium `/mcp` tool calls |
+| `CSPR_TRADE_X402_ENABLED` | `false` | Enables x402 payment middleware for premium tool calls on `/mcp` and `/mcp/read-only` |
 | `CSPR_TRADE_X402_PAYTO` | none | Base/EVM address receiving settlements; required when enabled |
 | `CSPR_TRADE_CDP_FACILITATOR_URL` | `https://api.cdp.coinbase.com/platform/v2/x402` | CDP Facilitator endpoint |
 | `CDP_API_KEY_ID`, `CDP_API_KEY_SECRET` | none | CDP API key pair; required when payments use the CDP Facilitator |

@@ -26,11 +26,11 @@ Add to Claude Desktop, Cursor, or any MCP client config:
 }
 ```
 
-That's it. Your agent now has access to **24 public tools** for market data, swaps, liquidity management, trade analysis, portfolio tracking, and account queries on the Casper Network.
+That's it. Your agent now has access to **23 public tools** for market data, swaps, liquidity management, trade analysis, portfolio tracking, and account queries on the Casper Network.
 
 ## What's Available
 
-### Public MCP surface: 24 tools
+### Public MCP surface: 23 tools
 
 | Category | Tools | Wallet Required |
 |----------|-------|----------------|
@@ -46,7 +46,7 @@ Run a second local MCP instance in `--signer` mode to add:
 
 - `sign_deploy` — local-only deploy signing with keys loaded from your machine
 
-That gives you **23 total tools across the full two-server setup**.
+That gives you **24 total tools across the full two-server setup**.
 
 **Non-custodial by design.** The public MCP server never handles private keys. Transactions are built remotely and signed locally when you enable signer mode.
 
@@ -82,11 +82,26 @@ npm install @make-software/cspr-trade-mcp
 
 See the [Self-Hosting guide](https://mcp.cspr.trade/docs/self-hosting) for HTTP server setup, local signer mode, production deployment, and the optional file-path workflow.
 
+## Agentic.Market / x402 Discovery
+
+HTTP deployments can expose Agentic.Market discovery metadata and optionally require x402 payments through Coinbase's CDP Facilitator.
+
+| Env var | Default | Purpose |
+|---------|---------|---------|
+| `CSPR_TRADE_X402_ENABLED` | `false` | Enables x402 payment middleware for `/mcp` when set to `true` |
+| `CSPR_TRADE_X402_PAYTO` | none | Base/EVM address receiving x402 settlements; required when x402 is enabled |
+| `CSPR_TRADE_CDP_FACILITATOR_URL` | `https://api.cdp.coinbase.com/platform/v2/x402` | CDP Facilitator endpoint |
+| `CDP_API_KEY_ID`, `CDP_API_KEY_SECRET` | none | CDP API key pair; required when payments use the CDP Facilitator |
+| `CSPR_TRADE_PUBLIC_URL` | `https://mcp.cspr.trade` | Public base URL used in x402 `resource` metadata |
+| pricing | built in | Premium MCP tools cost `$0.001`; discovery, balances, transaction builders, and `submit_transaction` stay free |
+
+`GET /cdp-resource` returns Bazaar discovery metadata for the 23 public MCP tools. The optional local signer tool is intentionally excluded from the Agentic.Market manifest.
+
 ## Packages
 
 | Package | Description |
 |---------|-------------|
-| [`@make-software/cspr-trade-mcp`](https://www.npmjs.com/package/@make-software/cspr-trade-mcp) | MCP server — 24 public tools over stdio or HTTP, plus optional `sign_deploy` in local signer mode |
+| [`@make-software/cspr-trade-mcp`](https://www.npmjs.com/package/@make-software/cspr-trade-mcp) | MCP server — 23 public tools over stdio or HTTP, plus optional `sign_deploy` in local signer mode |
 | [`@make-software/cspr-trade-mcp-sdk`](https://www.npmjs.com/package/@make-software/cspr-trade-mcp-sdk) | TypeScript SDK — market data, price history, quotes, analysis, and transaction building |
 
 ## Development

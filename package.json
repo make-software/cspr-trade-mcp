@@ -6,7 +6,8 @@
     "build": "npm run build --workspaces",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "npm run lint --workspaces --if-present"
+    "lint": "npm run lint --workspaces --if-present",
+    "x402:settlement-ping": "node scripts/x402-settlement-ping.mjs"
   },
   "devDependencies": {
     "typescript": "^5.7.0",

@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Agentic.Market / CDP Facilitator integration** — HTTP deployments now expose `GET /cdp-resource` with Bazaar discovery metadata for the 23 public MCP tools, and can enable x402 payment middleware on `/mcp` via `CSPR_TRADE_X402_ENABLED=true`.
+- **x402 configuration** — added `CSPR_TRADE_X402_PAYTO`, `CSPR_TRADE_CDP_FACILITATOR_URL`, `CDP_API_KEY_ID`/`CDP_API_KEY_SECRET` (required for the CDP Facilitator), and `CSPR_TRADE_PUBLIC_URL` for CDP Facilitator settlements and `paymentPayload.resource` metadata.
+
+### Fixed
+- Corrected README public-tool counts: 23 public hosted tools plus the optional local-only signer tool.
+
 ## [0.7.0] - 2026-04-28
 
 ### Added
